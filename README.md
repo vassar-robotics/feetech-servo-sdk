@@ -6,8 +6,6 @@
 
 A comprehensive Python SDK and command-line tool for controlling Feetech servos (STS/HLS series).
 
-> **🔒 Stability Commitment**: This package is used in production. We guarantee no breaking changes in any future updates. All new features will be added in a backwards-compatible manner.
-
 ## Features
 
 - 🔌 **Auto-detection** of serial ports
