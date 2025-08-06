@@ -5,6 +5,16 @@ All notable changes to the vassar-feetech-servo-sdk project will be documented i
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2025-08-06
+
+### Changed
+- **BREAKING**: `write_torque()` now accepts normalized torque values from -1.0 to 1.0 instead of raw values -2047 to 2047
+  - -1.0 = full reverse torque
+  - 0.0 = no torque  
+  - 1.0 = full forward torque
+  - The method internally maps these to the hardware range (-2047 to 2047)
+- Updated all examples and documentation to use the new normalized torque range
+
 ## [0.4.0] - 2025-08-06
 
 ### Added

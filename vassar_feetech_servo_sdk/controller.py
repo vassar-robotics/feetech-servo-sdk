@@ -517,7 +517,7 @@ class ServoController:
             print(f"Error setting mode for motor {motor_id}: {e}")
             return False
     
-    def write_torque(self, torque_dict: Dict[int, int]) -> Dict[int, bool]:
+    def write_torque(self, torque_dict: Dict[int, float]) -> Dict[int, bool]:
         """
         Write torque values to HLS servos.
         
@@ -525,9 +525,11 @@ class ServoController:
         
         Args:
             torque_dict: Dictionary mapping motor IDs to torque values.
-                        Torque range: -2047 to 2047 (6.5mA per unit).
-                        Positive values for one direction, negative for the other.
-                        Example: {1: 500, 2: -300, 3: 0}
+                        Torque range: -1.0 to 1.0 (normalized).
+                        -1.0 = full torque reverse direction
+                         0.0 = no torque
+                         1.0 = full torque forward direction
+                        Example: {1: 0.5, 2: -0.3, 3: 0}
                         
         Returns:
             dict: Dictionary mapping motor IDs to success status.
@@ -550,12 +552,15 @@ class ServoController:
         
         results = {}
         
-        for motor_id, torque_value in torque_dict.items():
+        for motor_id, torque_normalized in torque_dict.items():
             try:
-                # Validate torque range
-                if not (-2047 <= torque_value <= 2047):
-                    print(f"Warning: Torque {torque_value} out of range for motor {motor_id}. Clamping to [-2047, 2047]")
-                    torque_value = max(-2047, min(2047, torque_value))
+                # Validate normalized torque range
+                if not (-1.0 <= torque_normalized <= 1.0):
+                    print(f"Warning: Torque {torque_normalized} out of range for motor {motor_id}. Clamping to [-1.0, 1.0]")
+                    torque_normalized = max(-1.0, min(1.0, torque_normalized))
+                
+                # Map from -1.0 to 1.0 to -2047 to 2047
+                torque_value = int(torque_normalized * 2047)
                 
                 # Read current mode
                 mode_data, comm_result, error = self.packet_handler.read1ByteTxRx(motor_id, MODE_ADDR)

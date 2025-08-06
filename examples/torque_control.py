@@ -25,14 +25,14 @@ def main():
         
         # Example 1: Simple torque control
         print("\n--- Applying torque ---")
-        print("Motor 1: 80 (0.52A forward)")
-        print("Motor 2: -120 (0.78A reverse)")
+        print("Motor 1: 0.04 (4% forward)")
+        print("Motor 2: -0.06 (6% reverse)")
         print("Motor 3: 0 (no torque)")
         
         torque_values = {
-            1: 80,    # Positive = one direction
-            2: -120,  # Negative = opposite direction
-            3: 0      # Zero = no torque
+            1: 0.04,   # Positive = one direction (4% of max torque)
+            2: -0.06,  # Negative = opposite direction (6% of max torque)
+            3: 0       # Zero = no torque
         }
         
         results = controller.write_torque(torque_values)
@@ -47,7 +47,7 @@ def main():
         
         # Example 2: Stop all motors
         print("\n--- Stopping all motors ---")
-        stop_torques = {motor_id: 0 for motor_id in servo_ids}
+        stop_torques = {motor_id: 0.0 for motor_id in servo_ids}
         results = controller.write_torque(stop_torques)
         print("All motors stopped")
         
@@ -57,13 +57,14 @@ def main():
         print("\n--- Variable torque example ---")
         print("Gradually increasing torque on motor 1...")
         
-        for torque in range(0, 201, 20):  # 0 to 200 in steps of 20
+        for i in range(0, 11):  # 0 to 10 steps
+            torque = i * 0.01  # 0.00 to 0.10 in steps of 0.01
             controller.write_torque({1: torque})
-            print(f"Torque: {torque} ({torque * 6.5}mA)")
+            print(f"Torque: {torque:.2f} ({int(torque * 100)}% forward)")
             time.sleep(0.5)
         
         # Stop motor 1
-        controller.write_torque({1: 0})
+        controller.write_torque({1: 0.0})
         
         # Example 4: Setting operating modes manually
         print("\n--- Manual mode control ---")

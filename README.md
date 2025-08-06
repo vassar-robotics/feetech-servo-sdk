@@ -103,9 +103,9 @@ controller.connect()
 
 # Write torque values (automatically switches to torque mode)
 torque_values = {
-    1: 80,    # 80 * 6.5mA = 0.52A forward
-    2: -120,  # 120 * 6.5mA = 0.78A reverse  
-    3: 0      # No torque
+    1: 0.04,   # 4% forward torque
+    2: -0.06,  # 6% reverse torque  
+    3: 0       # No torque
 }
 
 results = controller.write_torque(torque_values)
