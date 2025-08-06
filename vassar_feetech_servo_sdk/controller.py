@@ -120,6 +120,8 @@ class ServoController:
     def disconnect(self) -> None:
         """Disconnect from the servos."""
         if self._connected and self.port_handler:
+            # Always disable servos before disconnecting
+            self.disable_all_servos()
             self.port_handler.closePort()
             self._connected = False
             
@@ -631,14 +633,13 @@ class ServoController:
         
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Context manager exit."""
-        # Disable all servos before disconnecting
-        self.disable_all_servos()
+        # disconnect() will handle disabling servos
         self.disconnect()
         
     def __del__(self):
         """Destructor to ensure servos are disabled when object is destroyed."""
         try:
-            self.disable_all_servos()
+            # disconnect() will handle disabling servos
             self.disconnect()
         except:
             pass  # Ignore errors during cleanup

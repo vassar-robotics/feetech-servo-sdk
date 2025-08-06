@@ -82,12 +82,15 @@ def main():
     except ValueError as e:
         print(f"\nError: {e}")
         print("Make sure you're using HLS servos. STS servos don't support torque control.")
+    except KeyboardInterrupt:
+        print("\n\nInterrupted by user (Ctrl+C)")
     except Exception as e:
         print(f"\nError: {e}")
     finally:
-        # The controller will automatically disable all servos when disconnecting
-        controller.disconnect()
-        print("Disconnected")
+        # disconnect() will automatically disable all servos
+        if 'controller' in locals():
+            controller.disconnect()
+            print("Disconnected")
 
 
 if __name__ == "__main__":
