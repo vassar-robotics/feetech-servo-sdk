@@ -85,11 +85,7 @@ def main():
     except Exception as e:
         print(f"\nError: {e}")
     finally:
-        # Always stop motors before disconnecting
-        print("\nStopping all motors...")
-        stop_torques = {motor_id: 0 for motor_id in servo_ids}
-        controller.write_torque(stop_torques)
-        
+        # The controller will automatically disable all servos when disconnecting
         controller.disconnect()
         print("Disconnected")
 

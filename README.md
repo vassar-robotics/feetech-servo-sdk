@@ -169,6 +169,9 @@ ServoController(servo_ids, servo_type="sts", port=None, baudrate=1000000)
 - `set_motor_id(current_id, new_id, confirm=True)`: Change a servo's ID (requires power cycle)
 - `set_operating_mode(motor_id, mode)`: Set servo operating mode (0-3)
 - `write_torque(torque_dict)`: Write torque values to HLS servos (auto-switches to torque mode)
+- `disable_all_servos()`: Disable torque on all servos (called automatically on cleanup)
+
+**Note**: The controller automatically disables all servos when the object is destroyed or when using context manager (with statement).
 
 ### Utility Functions
 

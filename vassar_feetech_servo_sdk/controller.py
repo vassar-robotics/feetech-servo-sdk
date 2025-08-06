@@ -593,6 +593,37 @@ class ServoController:
                 
         return results
     
+    def disable_all_servos(self) -> None:
+        """
+        Disable torque on all configured servos.
+        
+        This ensures servos have no output and won't move.
+        Safe to call even if not all servos are connected.
+        """
+        if not self._connected:
+            return
+            
+        # Memory address for torque enable
+        TORQUE_ENABLE_ADDR = 40  # Same for both STS and HLS
+        
+        print("\nDisabling all servos...")
+        
+        for motor_id in self.servo_ids:
+            try:
+                # Write 0 to disable torque
+                comm_result, error = self.packet_handler.write1ByteTxRx(motor_id, TORQUE_ENABLE_ADDR, 0)
+                
+                if comm_result == scs.COMM_SUCCESS:
+                    print(f"Motor {motor_id}: Disabled ✓")
+                else:
+                    print(f"Motor {motor_id}: Failed to disable - {self.packet_handler.getTxRxResult(comm_result)}")
+                    
+            except Exception as e:
+                print(f"Motor {motor_id}: Error disabling - {e}")
+                
+        # Give servos time to process
+        time.sleep(0.1)
+    
     def __enter__(self):
         """Context manager entry."""
         self.connect()
@@ -600,4 +631,14 @@ class ServoController:
         
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Context manager exit."""
+        # Disable all servos before disconnecting
+        self.disable_all_servos()
         self.disconnect()
+        
+    def __del__(self):
+        """Destructor to ensure servos are disabled when object is destroyed."""
+        try:
+            self.disable_all_servos()
+            self.disconnect()
+        except:
+            pass  # Ignore errors during cleanup

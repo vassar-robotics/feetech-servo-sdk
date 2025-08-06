@@ -10,8 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `set_operating_mode()` method to configure servo behavior (position/speed/torque/PWM)
 - `write_torque()` method for HLS servo torque control with automatic mode switching
+- `disable_all_servos()` method and automatic cleanup on controller destruction
 - Example script `torque_control.py` demonstrating HLS torque control usage
 - Documentation for torque control features in README
+
+### Changed
+- Controller now automatically disables all servos when destroyed or exiting context manager for safety
 
 ## [0.3.0] - 2025-08-06
 
