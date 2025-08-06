@@ -12,13 +12,7 @@ A comprehensive Python SDK and command-line tool for controlling Feetech servos 
 - 🎯 **Support for STS and HLS servos** (HLS includes torque control)
 - 📖 **Read positions** from single or multiple servos  
 - 🎯 **Set middle position** - Calibrate servos to position 2048
-- ✍️ **Write position targets** (coming soon)
 - 💪 **Write torque targets** (coming soon)
-- 🚀 **High-performance** group sync operations
-- 📊 **Real-time monitoring** with configurable update rates
-- 🐍 **Clean Python API** with servo configuration at initialization
-- 💻 **Command-line interface** for all operations
-- 🔧 **Context manager support** for clean resource management
 
 ## Installation
 
