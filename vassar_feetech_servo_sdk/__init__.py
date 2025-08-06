@@ -1,9 +1,8 @@
 """
 Vassar Feetech Servo SDK - A comprehensive Python SDK for controlling Feetech servos.
 
-This package provides both a Python API and command-line interface for 
-controlling Feetech servos (STS/HLS series). Features include reading positions,
-setting middle position, and future support for position/torque control.
+This package provides a Python API for controlling Feetech servos (STS/HLS series). 
+Features include reading positions, setting middle position, and changing motor IDs.
 """
 
 __version__ = "0.2.3"

@@ -4,7 +4,7 @@
 [![Stability: Stable](https://img.shields.io/badge/stability-stable-green.svg)](https://github.com/vassar-robotics/feetech-servo-sdk)
 [![No Breaking Changes](https://img.shields.io/badge/breaking%20changes-none-brightgreen)](https://github.com/vassar-robotics/feetech-servo-sdk)
 
-A comprehensive Python SDK and command-line tool for controlling Feetech servos (STS/HLS series).
+A comprehensive Python SDK for controlling Feetech servos (STS/HLS series).
 
 ## Features
 
@@ -38,30 +38,6 @@ pip install -e .
 Note: The `scservo_sdk` is bundled with this package, so no separate installation is needed.
 
 ## Quick Start
-
-### Command Line Usage
-
-```bash
-# Read from motors 1-6 continuously at 30Hz
-vassar-servo
-
-# Set all servos to middle position
-vassar-servo --set-middle
-
-# Read from specific motors at 60Hz
-vassar-servo --motor-ids 1,3,5 --hz 60
-
-# Use HLS servos (default is STS)
-vassar-servo --servo-type hls
-
-# Read once and exit
-vassar-servo --once
-
-# Output JSON format (useful for scripting)
-vassar-servo --once --json
-```
-
-### Python API Usage
 
 ```python
 from vassar_feetech_servo_sdk import ServoController
@@ -181,15 +157,15 @@ ServoController(servo_ids, servo_type="sts", port=None, baudrate=1000000)
 
 If auto-detection fails, specify the port manually:
 
-```bash
+```python
 # Linux
-vassar-servo --port /dev/ttyUSB0
+controller = ServoController(servo_ids=[1,2,3], port="/dev/ttyUSB0")
 
 # macOS
-vassar-servo --port /dev/tty.usbserial-*
+controller = ServoController(servo_ids=[1,2,3], port="/dev/tty.usbserial-XXXXX")
 
 # Windows
-vassar-servo --port COM3
+controller = ServoController(servo_ids=[1,2,3], port="COM3")
 ```
 
 ### Permission Denied (Linux)
