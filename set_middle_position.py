@@ -31,17 +31,34 @@ TORQUE_ENABLE = 40  # Write 128 to calibrate current position to 2048
 
 
 def set_middle_position(port_handler, packet_handler, motor_ids: List[int]):
-    """Set servos to middle position using the torque=128 method.
+    """Set servos to middle position using the torque=128 method with sync write.
     
     From STS3215 documentation:
     Address 40 (0x28) - Torque Switch: Write 128 to calibrate current position to 2048
     """
-    print("\nSetting middle position...")
+    print("\nSetting middle position using sync write...")
     
-    # Use the special torque=128 command to calibrate current position to 2048
+    # Create a GroupSyncWrite instance for writing to TORQUE_ENABLE register
+    # Parameters: protocol handler, start address, data length
+    group_sync_write = scs.GroupSyncWrite(packet_handler, TORQUE_ENABLE, 1)
+    
+    # Add all motors to the sync write
     for motor_id in motor_ids:
-        packet_handler.write1ByteTxRx(port_handler, motor_id, TORQUE_ENABLE, 128)
-        time.sleep(0.05)  # Give it time to process
+        # Add motor_id and data (value 128) to sync write
+        success = group_sync_write.addParam(motor_id, [128])
+        if not success:
+            print(f"Failed to add motor {motor_id} to sync write")
+    
+    # Send the sync write command to all motors at once
+    comm_result = group_sync_write.txPacket()
+    if comm_result != scs.COMM_SUCCESS:
+        print(f"Sync write failed: {packet_handler.getTxRxResult(comm_result)}")
+    
+    # Clear the sync write parameters
+    group_sync_write.clearParam()
+    
+    # Give servos time to process the calibration
+    time.sleep(0.1)
     
     # Verify positions
     time.sleep(0.1)
@@ -77,7 +94,7 @@ def main():
     
     # Connect
     port_handler = scs.PortHandler(port)
-    packet_handler = scs.PacketHandler(0)
+    packet_handler = scs.sms_sts(port_handler)  # Using SMS/STS series handler
     
     if not port_handler.openPort():
         print(f"Failed to open port {port}")

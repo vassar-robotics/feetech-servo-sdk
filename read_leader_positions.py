@@ -44,16 +44,42 @@ def find_port() -> str:
 
 
 def read_positions(port_handler, packet_handler, motor_ids: List[int]) -> Dict[int, int]:
-    """Read positions from motors."""
+    """Read positions from motors using group sync read."""
     positions = {}
     
+    # Create group sync read instance
+    # Address 56 is PRESENT_POSITION, reading 2 bytes
+    groupSyncRead = scs.GroupSyncRead(packet_handler, 56, 2)
+    
+    # Add all motor IDs to the group
     for motor_id in motor_ids:
-        result = packet_handler.read2ByteTxRx(port_handler, motor_id, 56)  # PRESENT_POSITION = 56
+        if not groupSyncRead.addParam(motor_id):
+            print(f"[ID:{motor_id:03d}] groupSyncRead addParam failed")
+            continue
+    
+    # Perform the group read
+    comm_result = groupSyncRead.txRxPacket()
+    if comm_result != scs.COMM_SUCCESS:
+        print(f"GroupSyncRead failed: {packet_handler.getTxRxResult(comm_result)}")
+        groupSyncRead.clearParam()
+        return positions
+    
+    # Extract data for each motor
+    for motor_id in motor_ids:
+        # Check if data is available
+        data_result, error = groupSyncRead.isAvailable(motor_id, 56, 2)
+        if data_result:
+            # Get position value
+            position = groupSyncRead.getData(motor_id, 56, 2)
+            positions[motor_id] = position
+        else:
+            print(f"[ID:{motor_id:03d}] groupSyncRead getData failed")
         
-        if len(result) >= 2:
-            position = result[0]
-            if result[1] == scs.COMM_SUCCESS:
-                positions[motor_id] = position
+        if error != 0:
+            print(f"[ID:{motor_id:03d}] {packet_handler.getRxPacketError(error)}")
+    
+    # Clear parameters for next read
+    groupSyncRead.clearParam()
     
     return positions
 
@@ -74,7 +100,7 @@ def main():
     
     # Connect
     port_handler = scs.PortHandler(port)
-    packet_handler = scs.PacketHandler(0)
+    packet_handler = scs.sms_sts(port_handler)  # Using SMS/STS series handler
     
     if not port_handler.openPort():
         print(f"Failed to open port {port}")
