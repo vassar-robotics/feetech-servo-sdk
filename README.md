@@ -9,6 +9,7 @@ This minimal implementation is built using the official Feetech SDK from: https:
 
 - Python 3.x
 - pyserial: `pip install pyserial`
+- pyzmq: `pip install pyzmq` (for basic_send_commands.py)
 - scservo_sdk (included in the `scservo_sdk/` directory)
 
 ## Scripts
@@ -39,4 +40,21 @@ python set_middle_position.py --motor_ids=1,2,3,4,5,6,7,8
 
 # Specify port manually
 python set_middle_position.py --port=/dev/ttyUSB0
+```
+
+### basic_send_commands.py
+Reads joint positions from the SO101 robot and sends them via ZMQ to a remote endpoint. Displays positions in the terminal while broadcasting.
+
+```bash
+# Read positions and send to tcp://10.1.10.85:5000
+python basic_send_commands.py
+
+# Specify custom motor IDs
+python basic_send_commands.py --motor_ids=1,2,3,4,5,6
+
+# Custom frequency (default: 10 Hz)
+python basic_send_commands.py --hz=30
+
+# Specify port manually
+python basic_send_commands.py --port=COM3
 ```

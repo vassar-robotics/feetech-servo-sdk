@@ -1,2 +1,3 @@
 # Minimal requirements for leader position reading
-pyserial>=3.5 
+pyserial>=3.5
+pyzmq>=25.0.0 
