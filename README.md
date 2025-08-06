@@ -91,6 +91,32 @@ with ServoController([1, 2, 3], "sts") as controller:
     print(positions)
 ```
 
+### Changing Servo IDs
+
+```python
+from vassar_feetech_servo_sdk import ServoController
+
+# Connect to a servo with current ID 1
+controller = ServoController(servo_ids=[1], servo_type="sts")
+controller.connect()
+
+# Change its ID from 1 to 10
+success = controller.set_motor_id(
+    current_id=1,
+    new_id=10,
+    confirm=True  # Will ask for user confirmation
+)
+
+if success:
+    print("ID changed! Power cycle the servo to apply.")
+    
+controller.disconnect()
+
+# After power cycling, connect with new ID
+controller = ServoController(servo_ids=[10], servo_type="sts")
+controller.connect()
+```
+
 ### Advanced Usage
 
 ```python
@@ -138,6 +164,7 @@ ServoController(servo_ids, servo_type="sts", port=None, baudrate=1000000)
 - `read_positions(motor_ids=None)`: Read multiple motor positions
 - `read_all_positions()`: Read all configured servo positions
 - `set_middle_position(motor_ids=None)`: Calibrate servos to middle position (2048)
+- `set_motor_id(current_id, new_id, confirm=True)`: Change a servo's ID (requires power cycle)
 
 ### Utility Functions
 

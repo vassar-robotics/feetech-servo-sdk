@@ -330,6 +330,124 @@ class ServoController:
 
 
     
+    def set_motor_id(self, current_id: int, new_id: int, confirm: bool = True) -> bool:
+        """
+        Set a new ID for a connected servo.
+        
+        WARNING: This permanently changes the servo's ID in EEPROM. The servo will need
+        to be power cycled or rebooted for the change to take effect.
+        
+        Args:
+            current_id: The current ID of the servo to change.
+            new_id: The new ID to assign (0-253).
+            confirm: Whether to ask for user confirmation (default: True).
+            
+        Returns:
+            bool: True if ID was successfully changed.
+            
+        Raises:
+            ConnectionError: If not connected.
+            ValueError: If IDs are invalid.
+            CommunicationError: If communication fails.
+        """
+        if not self._connected:
+            raise ConnectionError("Not connected. Call connect() first.")
+            
+        # Validate IDs
+        if not (0 <= current_id <= 253):
+            raise ValueError(f"Current ID {current_id} out of range (0-253)")
+        if not (0 <= new_id <= 253):
+            raise ValueError(f"New ID {new_id} out of range (0-253)")
+        if current_id == new_id:
+            raise ValueError("Current ID and new ID are the same")
+            
+        # Memory addresses
+        ID_ADDR = 5      # ID register address (same for both STS and HLS)
+        LOCK_ADDR = 55   # Lock flag address
+        
+        # User confirmation
+        if confirm:
+            print(f"\n⚠️  WARNING: This will permanently change servo ID from {current_id} to {new_id}")
+            print("The servo will need to be power cycled for the change to take effect.")
+            response = input("Continue? (yes/no): ").strip().lower()
+            if response != 'yes':
+                print("ID change cancelled.")
+                return False
+        
+        try:
+            # Step 1: Verify we can communicate with the servo at current ID
+            print(f"\nVerifying communication with servo ID {current_id}...")
+            model_number, comm_result, error = self.packet_handler.ping(current_id)
+            if comm_result != scs.COMM_SUCCESS:
+                raise CommunicationError(
+                    f"Cannot communicate with servo ID {current_id}. "
+                    f"Error: {self.packet_handler.getTxRxResult(comm_result)}"
+                )
+            print(f"✓ Servo ID {current_id} found")
+            
+            # Step 2: Unlock EEPROM
+            print("Unlocking EEPROM...")
+            if self.servo_type == "sts":
+                comm_result, error = self.packet_handler.unLockEprom(current_id)
+            elif self.servo_type == "hls":
+                comm_result, error = self.packet_handler.unLockEprom(current_id)
+            
+            if comm_result != scs.COMM_SUCCESS:
+                raise CommunicationError(
+                    f"Failed to unlock EEPROM: {self.packet_handler.getTxRxResult(comm_result)}"
+                )
+            print("✓ EEPROM unlocked")
+            
+            # Step 3: Write new ID
+            print(f"Writing new ID {new_id}...")
+            comm_result, error = self.packet_handler.write1ByteTxRx(current_id, ID_ADDR, new_id)
+            
+            if comm_result != scs.COMM_SUCCESS:
+                # Try to re-lock EEPROM even if write failed
+                self._lock_eeprom_safe(current_id)
+                raise CommunicationError(
+                    f"Failed to write new ID: {self.packet_handler.getTxRxResult(comm_result)}"
+                )
+            print(f"✓ New ID {new_id} written")
+            
+            # Step 4: Lock EEPROM
+            print("Locking EEPROM...")
+            if self.servo_type == "sts":
+                comm_result, error = self.packet_handler.LockEprom(current_id)
+            elif self.servo_type == "hls":
+                comm_result, error = self.packet_handler.LockEprom(current_id)
+                
+            if comm_result != scs.COMM_SUCCESS:
+                print(f"⚠️  Warning: Failed to lock EEPROM: {self.packet_handler.getTxRxResult(comm_result)}")
+            else:
+                print("✓ EEPROM locked")
+            
+            # Give servo time to process
+            time.sleep(0.1)
+            
+            print(f"\n✅ Successfully changed servo ID from {current_id} to {new_id}")
+            print("\n⚠️  IMPORTANT: You must now:")
+            print(f"   1. Power cycle the servo (turn power off and on)")
+            print(f"   2. Update your servo_ids list to include ID {new_id}")
+            print(f"   3. Reconnect to use the servo with its new ID")
+            
+            return True
+            
+        except Exception as e:
+            # Try to ensure EEPROM is locked on any error
+            self._lock_eeprom_safe(current_id)
+            raise
+    
+    def _lock_eeprom_safe(self, servo_id: int):
+        """Safely attempt to lock EEPROM, ignoring errors."""
+        try:
+            if self.servo_type == "sts":
+                self.packet_handler.LockEprom(servo_id)
+            elif self.servo_type == "hls":
+                self.packet_handler.LockEprom(servo_id)
+        except:
+            pass  # Ignore errors when trying to lock
+    
     def __enter__(self):
         """Context manager entry."""
         self.connect()
