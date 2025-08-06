@@ -89,23 +89,6 @@ controller.disconnect()
 with ServoController([1, 2, 3], "sts") as controller:
     positions = controller.read_all_positions()
     print(positions)
-
-# Continuous reading with callback
-import time
-
-def my_callback(positions):
-    print(f"Got positions: {positions}")
-
-with ServoController([1, 2, 3], "hls") as controller:
-    # Custom continuous reading loop
-    loop_time = 1.0 / 50.0  # 50Hz
-    while True:
-        start = time.perf_counter()
-        positions = controller.read_positions()
-        my_callback(positions)
-        elapsed = time.perf_counter() - start
-        if elapsed < loop_time:
-            time.sleep(loop_time - elapsed)
 ```
 
 ### Advanced Usage
