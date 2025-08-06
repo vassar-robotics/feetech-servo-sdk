@@ -180,11 +180,18 @@ vassar-servo --port COM3
 
 ### Permission Denied (Linux)
 
-Add your user to the dialout group:
+Option 1: Add your user to the dialout group (recommended):
 
 ```bash
 sudo usermod -a -G dialout $USER
 # Log out and back in for changes to take effect
+```
+
+Option 2: Grant permissions to the serial port (temporary):
+
+```bash
+sudo chmod 666 /dev/ttyUSB0
+# Replace /dev/ttyUSB0 with your actual serial port
 ```
 
 ### Connection Failed
@@ -201,8 +208,6 @@ The package includes several example scripts in the `examples/` directory:
 - `continuous_reading.py` - Real-time monitoring with custom callbacks
 - `servo_types.py` - Demonstrates differences between STS and HLS servos
 - `set_middle_position.py` - Shows how to calibrate servos to middle position
-
-
 
 ## Acknowledgments
 
