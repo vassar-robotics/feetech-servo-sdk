@@ -1,6 +1,12 @@
 # Vassar Feetech Servo SDK
 
+[![PyPI version](https://badge.fury.io/py/vassar-feetech-servo-sdk.svg)](https://badge.fury.io/py/vassar-feetech-servo-sdk)
+[![Stability: Stable](https://img.shields.io/badge/stability-stable-green.svg)](https://github.com/vassar-robotics/feetech-servo-sdk/blob/main/CONTRIBUTING.md)
+[![No Breaking Changes](https://img.shields.io/badge/breaking%20changes-none-brightgreen)](https://github.com/vassar-robotics/feetech-servo-sdk/blob/main/CONTRIBUTING.md)
+
 A comprehensive Python SDK and command-line tool for controlling Feetech servos (STS/HLS series).
+
+> **🔒 Stability Commitment**: This package is used in production. We guarantee no breaking changes in any future updates. All new features will be added in a backwards-compatible manner.
 
 ## Features
 
@@ -235,6 +241,12 @@ Run the test suite:
 pip install -r requirements-dev.txt
 python -m pytest tests/ -v
 ```
+
+## Contributing
+
+We welcome contributions! However, since this package is used in production, we have strict guidelines to ensure backwards compatibility. Please read our [Contributing Guidelines](CONTRIBUTING.md) before submitting any changes.
+
+**Important**: We do NOT accept breaking changes. All new features must be added in a backwards-compatible manner.
 
 ## Acknowledgments
 
