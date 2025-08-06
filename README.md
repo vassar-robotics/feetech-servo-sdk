@@ -2,6 +2,9 @@
 
 Minimal Python SDK for Feetech servo motors - clean, simple, and effective.
 
+
+This minimal implementation is built using the official Feetech SDK from: https://gitee.com/ftservo/FTServo_Python
+
 ## Requirements
 
 - Python 3.x
