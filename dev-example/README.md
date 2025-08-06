@@ -2,6 +2,8 @@
 
 This directory contains the official example code from Feetech for their servo SDK. These examples are included for development reference but are **NOT** part of the `vassar-feetech-servo-sdk` package.
 
+**Source**: These examples are adapted from the official Feetech repository: https://gitee.com/ftservo/FTServo_Python
+
 ## Purpose
 
 - Reference implementation examples from Feetech
