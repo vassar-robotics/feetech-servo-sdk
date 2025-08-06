@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Example: Calibrate servos to their middle position (2048).
+Script to set Feetech servo motors to their middle position (2048).
 
 Uses the special torque=128 command to calibrate current position to 2048.
 The calibration takes effect immediately.
@@ -9,14 +9,12 @@ Based on the Feetech STS Servos manual:
 http://doc.feetech.cn/#/prodinfodownload?srcType=FT-SMS-STS-emanual-229f4476422d4059abfb1cb0
 
 Example usage:
-python calibrate_middle_position.py
+python set_middle_position.py
 """
 
 import argparse
-import sys
 import time
 from typing import List
-sys.path.append('..')  # Add parent directory to path
 
 try:
     import scservo_sdk as scs
@@ -24,7 +22,8 @@ except ImportError:
     print("ERROR: scservo_sdk not found")
     exit(1)
 
-from feetech_utils import find_port, read_positions
+# Import functions from read_leader_positions.py
+from read_leader_positions import find_port, read_positions
 
 
 # Feetech register addresses
