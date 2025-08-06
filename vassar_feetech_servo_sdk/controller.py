@@ -448,6 +448,151 @@ class ServoController:
         except:
             pass  # Ignore errors when trying to lock
     
+    def set_operating_mode(self, motor_id: int, mode: int) -> bool:
+        """
+        Set the operating mode of a servo.
+        
+        Args:
+            motor_id: The ID of the servo to configure.
+            mode: Operating mode (0-3):
+                  - 0: Position servo mode
+                  - 1: Constant speed mode  
+                  - 2: Constant current/torque mode (HLS) or PWM mode (STS)
+                  - 3: PWM/Step mode (STS) or PWM open-loop (HLS)
+                  
+        Returns:
+            bool: True if mode was successfully set.
+            
+        Raises:
+            ConnectionError: If not connected.
+            ValueError: If mode is invalid.
+        """
+        if not self._connected:
+            raise ConnectionError("Not connected. Call connect() first.")
+            
+        if not (0 <= mode <= 3):
+            raise ValueError(f"Invalid mode {mode}. Must be 0-3.")
+            
+        # Memory addresses
+        MODE_ADDR = 33    # Operating mode register (same for both STS and HLS)
+        LOCK_ADDR = 55    # Lock flag address
+        
+        try:
+            # Unlock EEPROM
+            if self.servo_type == "sts":
+                comm_result, error = self.packet_handler.unLockEprom(motor_id)
+            else:  # hls
+                comm_result, error = self.packet_handler.unLockEprom(motor_id)
+                
+            if comm_result != scs.COMM_SUCCESS:
+                print(f"Warning: Failed to unlock EEPROM for motor {motor_id}")
+                return False
+                
+            # Write new mode
+            comm_result, error = self.packet_handler.write1ByteTxRx(motor_id, MODE_ADDR, mode)
+            
+            if comm_result != scs.COMM_SUCCESS:
+                self._lock_eeprom_safe(motor_id)
+                print(f"Failed to set mode for motor {motor_id}: {self.packet_handler.getTxRxResult(comm_result)}")
+                return False
+                
+            # Lock EEPROM
+            if self.servo_type == "sts":
+                comm_result, error = self.packet_handler.LockEprom(motor_id)
+            else:  # hls
+                comm_result, error = self.packet_handler.LockEprom(motor_id)
+                
+            if comm_result != scs.COMM_SUCCESS:
+                print(f"Warning: Failed to lock EEPROM for motor {motor_id}")
+                
+            # Give servo time to process
+            time.sleep(0.05)
+            
+            return True
+            
+        except Exception as e:
+            self._lock_eeprom_safe(motor_id)
+            print(f"Error setting mode for motor {motor_id}: {e}")
+            return False
+    
+    def write_torque(self, torque_dict: Dict[int, int]) -> Dict[int, bool]:
+        """
+        Write torque values to HLS servos.
+        
+        Automatically switches servos to torque mode (mode 2) if needed.
+        
+        Args:
+            torque_dict: Dictionary mapping motor IDs to torque values.
+                        Torque range: -2047 to 2047 (6.5mA per unit).
+                        Positive values for one direction, negative for the other.
+                        Example: {1: 500, 2: -300, 3: 0}
+                        
+        Returns:
+            dict: Dictionary mapping motor IDs to success status.
+                  Example: {1: True, 2: True, 3: False}
+                  
+        Raises:
+            ConnectionError: If not connected.
+            ValueError: If used with STS servos (HLS only).
+        """
+        if not self._connected:
+            raise ConnectionError("Not connected. Call connect() first.")
+            
+        if self.servo_type != "hls":
+            raise ValueError("write_torque is only supported for HLS servos. STS servos do not have torque control.")
+            
+        # Memory addresses
+        MODE_ADDR = 33            # Operating mode register
+        TORQUE_ENABLE_ADDR = 40   # Torque enable register  
+        GOAL_TORQUE_ADDR = 44     # Goal torque register (2 bytes)
+        
+        results = {}
+        
+        for motor_id, torque_value in torque_dict.items():
+            try:
+                # Validate torque range
+                if not (-2047 <= torque_value <= 2047):
+                    print(f"Warning: Torque {torque_value} out of range for motor {motor_id}. Clamping to [-2047, 2047]")
+                    torque_value = max(-2047, min(2047, torque_value))
+                
+                # Read current mode
+                mode_data, comm_result, error = self.packet_handler.read1ByteTxRx(motor_id, MODE_ADDR)
+                
+                if comm_result != scs.COMM_SUCCESS:
+                    print(f"Failed to read mode for motor {motor_id}")
+                    results[motor_id] = False
+                    continue
+                    
+                # Switch to torque mode if needed
+                if mode_data != 2:
+                    print(f"Motor {motor_id} is in mode {mode_data}, switching to torque mode (2)...")
+                    if not self.set_operating_mode(motor_id, 2):
+                        print(f"Failed to switch motor {motor_id} to torque mode")
+                        results[motor_id] = False
+                        continue
+                        
+                # Ensure torque is enabled
+                torque_enabled, comm_result, error = self.packet_handler.read1ByteTxRx(motor_id, TORQUE_ENABLE_ADDR)
+                if comm_result == scs.COMM_SUCCESS and torque_enabled != 1:
+                    comm_result, error = self.packet_handler.write1ByteTxRx(motor_id, TORQUE_ENABLE_ADDR, 1)
+                    if comm_result != scs.COMM_SUCCESS:
+                        print(f"Warning: Failed to enable torque for motor {motor_id}")
+                
+                # Write torque value (16-bit signed, little-endian)
+                comm_result, error = self.packet_handler.write2ByteTxRx(motor_id, GOAL_TORQUE_ADDR, torque_value)
+                
+                if comm_result != scs.COMM_SUCCESS:
+                    print(f"Failed to write torque for motor {motor_id}: {self.packet_handler.getTxRxResult(comm_result)}")
+                    results[motor_id] = False
+                else:
+                    results[motor_id] = True
+                    
+            except Exception as e:
+                print(f"Error writing torque for motor {motor_id}: {e}")
+                results[motor_id] = False
+                
+        return results
+    
     def __enter__(self):
         """Context manager entry."""
         self.connect()

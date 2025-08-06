@@ -57,7 +57,7 @@ class TestServoController:
     def test_init_default(self):
         """Test initialization with defaults."""
         servo_ids = [1, 2, 3]
-        controller = ServoController(servo_ids=servo_ids)
+        controller = ServoController(servo_ids=servo_ids, port="/dev/ttyUSB0")
         
         assert controller.servo_ids == servo_ids
         assert controller.servo_type == "sts"
@@ -85,7 +85,7 @@ class TestServoController:
     def test_init_auto_port(self, mock_find_port):
         """Test initialization with automatic port detection."""
         mock_find_port.return_value = "/dev/ttyUSB0"
-        controller = ServoController([1, 2])
+        controller = ServoController([1, 2])  # No port specified to trigger auto-detection
         
         assert controller.port == "/dev/ttyUSB0"
         mock_find_port.assert_called_once()
@@ -93,7 +93,7 @@ class TestServoController:
     def test_init_invalid_servo_type(self):
         """Test initialization with invalid servo type."""
         with pytest.raises(ValueError, match="Unsupported servo type"):
-            ServoController([1, 2], servo_type="invalid")
+            ServoController([1, 2], servo_type="invalid", port="/dev/ttyUSB0")
     
     @patch('scservo_sdk.PortHandler')
     @patch('scservo_sdk.sms_sts')
@@ -167,13 +167,13 @@ class TestServoController:
     
     def test_connect_already_connected(self):
         """Test connecting when already connected."""
-        controller = ServoController([1, 2])
+        controller = ServoController([1, 2], port="/dev/ttyUSB0")
         controller._connected = True
         controller.connect()  # Should return immediately without error
     
     def test_disconnect(self):
         """Test disconnecting."""
-        controller = ServoController([1, 2])
+        controller = ServoController([1, 2], port="/dev/ttyUSB0")
         controller._connected = True
         controller.port_handler = Mock()
         
@@ -184,13 +184,13 @@ class TestServoController:
     
     def test_disconnect_not_connected(self):
         """Test disconnecting when not connected."""
-        controller = ServoController([1, 2])
+        controller = ServoController([1, 2], port="/dev/ttyUSB0")
         controller.disconnect()  # Should not raise error
     
     @patch('scservo_sdk.COMM_SUCCESS', 0)
     def test_read_position_success(self):
         """Test reading position from single motor."""
-        controller = ServoController([1, 2])
+        controller = ServoController([1, 2], port="/dev/ttyUSB0")
         controller._connected = True
         controller.packet_handler = Mock()
         controller.packet_handler.ReadPos.return_value = (2048, 0, 0)
@@ -204,7 +204,7 @@ class TestServoController:
     
     def test_read_position_not_connected(self):
         """Test reading position when not connected."""
-        controller = ServoController([1, 2])
+        controller = ServoController([1, 2], port="/dev/ttyUSB0")
         
         with pytest.raises(ConnectionError, match="Not connected"):
             controller.read_position(1)
@@ -212,7 +212,7 @@ class TestServoController:
     @patch('scservo_sdk.COMM_SUCCESS', 0)
     def test_read_position_comm_error(self):
         """Test reading position with communication error."""
-        controller = ServoController([1, 2])
+        controller = ServoController([1, 2], port="/dev/ttyUSB0")
         controller._connected = True
         controller.packet_handler = Mock()
         controller.packet_handler.ReadPos.return_value = (0, 1, 0)  # comm_result != COMM_SUCCESS
@@ -224,7 +224,7 @@ class TestServoController:
     @patch('scservo_sdk.COMM_SUCCESS', 0)
     def test_read_position_packet_error(self):
         """Test reading position with packet error."""
-        controller = ServoController([1, 2])
+        controller = ServoController([1, 2], port="/dev/ttyUSB0")
         controller._connected = True
         controller.packet_handler = Mock()
         controller.packet_handler.ReadPos.return_value = (0, 0, 1)  # error != 0
@@ -245,7 +245,7 @@ class TestServoController:
         group_sync.getData.side_effect = [1024, 2048, 3072]
         mock_group_sync_read.return_value = group_sync
         
-        controller = ServoController([1, 2, 3])
+        controller = ServoController([1, 2, 3], port="/dev/ttyUSB0")
         controller._connected = True
         controller.packet_handler = Mock()
         controller.packet_handler.getTxRxResult.return_value = "Success"
@@ -268,7 +268,7 @@ class TestServoController:
         group_sync.getData.return_value = 2048
         mock_group_sync_read.return_value = group_sync
         
-        controller = ServoController([5, 6])
+        controller = ServoController([5, 6], port="/dev/ttyUSB0")
         controller._connected = True
         controller.packet_handler = Mock()
         
@@ -280,7 +280,7 @@ class TestServoController:
     
     def test_read_positions_not_connected(self):
         """Test reading positions when not connected."""
-        controller = ServoController([1, 2])
+        controller = ServoController([1, 2], port="/dev/ttyUSB0")
         
         with pytest.raises(ConnectionError, match="Not connected"):
             controller.read_positions()
@@ -296,7 +296,7 @@ class TestServoController:
         group_sync.getData.return_value = 2048
         mock_group_sync_read.return_value = group_sync
         
-        controller = ServoController([1, 2, 3])
+        controller = ServoController([1, 2, 3], port="/dev/ttyUSB0")
         controller._connected = True
         controller.packet_handler = Mock()
         
@@ -315,7 +315,7 @@ class TestServoController:
         group_sync.txPacket.return_value = 0
         mock_group_sync_write.return_value = group_sync
         
-        controller = ServoController([1, 2], servo_type="sts")
+        controller = ServoController([1, 2], servo_type="sts", port="/dev/ttyUSB0")
         controller._connected = True
         controller.packet_handler = Mock()
         
@@ -335,7 +335,7 @@ class TestServoController:
     @patch('vassar_feetech_servo_sdk.controller.time.sleep')
     def test_set_middle_position_hls_success(self, mock_sleep):
         """Test setting middle position for HLS servos."""
-        controller = ServoController([1, 2], servo_type="hls")
+        controller = ServoController([1, 2], servo_type="hls", port="/dev/ttyUSB0")
         controller._connected = True
         controller.packet_handler = Mock()
         controller.packet_handler.reOfsCal.side_effect = [(0, 0), (0, 0)]
@@ -353,7 +353,7 @@ class TestServoController:
     
     def test_set_middle_position_not_connected(self):
         """Test setting middle position when not connected."""
-        controller = ServoController([1, 2])
+        controller = ServoController([1, 2], port="/dev/ttyUSB0")
         
         with pytest.raises(ConnectionError, match="Not connected"):
             controller.set_middle_position()
@@ -362,7 +362,7 @@ class TestServoController:
     @patch('vassar_feetech_servo_sdk.controller.time.sleep')
     def test_set_middle_position_hls_failure(self, mock_sleep):
         """Test setting middle position failure for HLS servos."""
-        controller = ServoController([1, 2], servo_type="hls")
+        controller = ServoController([1, 2], servo_type="hls", port="/dev/ttyUSB0")
         controller._connected = True
         controller.packet_handler = Mock()
         controller.packet_handler.reOfsCal.side_effect = [(1, 0), (0, 0)]  # First motor fails
@@ -373,7 +373,7 @@ class TestServoController:
     
     def test_context_manager(self):
         """Test context manager functionality."""
-        controller = ServoController([1, 2])
+        controller = ServoController([1, 2], port="/dev/ttyUSB0")
         
         with patch.object(controller, 'connect') as mock_connect:
             with patch.object(controller, 'disconnect') as mock_disconnect:
@@ -385,7 +385,7 @@ class TestServoController:
     
     def test_context_manager_with_exception(self):
         """Test context manager cleanup on exception."""
-        controller = ServoController([1, 2])
+        controller = ServoController([1, 2], port="/dev/ttyUSB0")
         
         with patch.object(controller, 'connect'):
             with patch.object(controller, 'disconnect') as mock_disconnect:

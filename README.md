@@ -12,7 +12,8 @@ A comprehensive Python SDK for controlling Feetech servos (STS/HLS series).
 - 🎯 **Support for STS and HLS servos** (HLS includes torque control)
 - 📖 **Read positions** from single or multiple servos  
 - 🎯 **Set middle position** - Calibrate servos to position 2048
-- 💪 **Write torque targets** (coming soon)
+- 💪 **Write torque targets** - HLS servos only with automatic mode switching
+- 🔧 **Set operating modes** - Configure servo behavior (position/speed/torque/PWM)
 
 ## Installation
 
@@ -91,6 +92,33 @@ controller = ServoController(servo_ids=[10], servo_type="sts")
 controller.connect()
 ```
 
+### Torque Control (HLS Only)
+
+```python
+from vassar_feetech_servo_sdk import ServoController
+
+# Connect to HLS servos
+controller = ServoController(servo_ids=[1, 2, 3], servo_type="hls")
+controller.connect()
+
+# Write torque values (automatically switches to torque mode)
+torque_values = {
+    1: 500,   # 500 * 6.5mA = 3.25A forward
+    2: -300,  # 300 * 6.5mA = 1.95A reverse  
+    3: 0      # No torque
+}
+
+results = controller.write_torque(torque_values)
+print(f"Torque write results: {results}")
+
+# You can also manually set operating modes
+controller.set_operating_mode(1, 0)  # Position mode
+controller.set_operating_mode(2, 1)  # Speed mode
+controller.set_operating_mode(3, 2)  # Torque mode
+
+controller.disconnect()
+```
+
 ### Advanced Usage
 
 ```python
@@ -139,6 +167,8 @@ ServoController(servo_ids, servo_type="sts", port=None, baudrate=1000000)
 - `read_all_positions()`: Read all configured servo positions
 - `set_middle_position(motor_ids=None)`: Calibrate servos to middle position (2048)
 - `set_motor_id(current_id, new_id, confirm=True)`: Change a servo's ID (requires power cycle)
+- `set_operating_mode(motor_id, mode)`: Set servo operating mode (0-3)
+- `write_torque(torque_dict)`: Write torque values to HLS servos (auto-switches to torque mode)
 
 ### Utility Functions
 

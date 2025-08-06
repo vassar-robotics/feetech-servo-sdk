@@ -5,7 +5,7 @@ This package provides a Python API for controlling Feetech servos (STS/HLS serie
 Features include reading positions, setting middle position, and changing motor IDs.
 """
 
-__version__ = "0.2.3"
+__version__ = "0.3.0"
 __author__ = "Vassar Robotics"
 __email__ = "hello@vassarrobotics.com"
 

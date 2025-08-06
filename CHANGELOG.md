@@ -9,16 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `set_motor_id()` method to permanently change servo IDs
+- `set_operating_mode()` method to configure servo behavior (position/speed/torque/PWM)
+- `write_torque()` method for HLS servo torque control with automatic mode switching
 - Example script `change_servo_id.py` demonstrating ID changes
+- Example script `torque_control.py` demonstrating HLS torque control
 - Support for both STS and HLS servos in ID changing
 - Safety checks and user confirmation for ID changes
 - Documentation for changing servo IDs in README
+- Documentation for torque control in README
 
 ### Changed
 - Fixed ping command handling in `set_motor_id()` method
 
 ### Removed
 - `basic_usage.py` example (functionality covered by other examples)
+- Command line interface (CLI) - package is now Python API only
 
 ## [0.2.3] - 2025-08-06
 
