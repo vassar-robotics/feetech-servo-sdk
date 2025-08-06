@@ -3,7 +3,7 @@
 
 import time
 from datetime import datetime
-from vassar_feetech_servo_sdk import ServoReader
+from vassar_feetech_servo_sdk import ServoController
 
 
 class PositionLogger:
@@ -18,33 +18,36 @@ class PositionLogger:
         self.reading_count += 1
         elapsed = time.time() - self.start_time
         
-        # Calculate average position
-        avg_position = sum(positions.values()) / len(positions) if positions else 0
-        
         # Log data
         timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
         print(f"[{timestamp}] Reading #{self.reading_count} "
               f"(elapsed: {elapsed:.1f}s)")
-        print(f"  Average position: {avg_position:.0f} "
-              f"({avg_position/4095*100:.1f}%)")
-        print(f"  Motors: {list(positions.keys())}")
+        
+        # Print each servo's position
+        for motor_id in sorted(positions.keys()):
+            pos = positions[motor_id]
+            percent = pos / 4095 * 100
+            print(f"  Motor {motor_id}: {pos:4d} ({percent:5.1f}%)")
         print()
 
 
 def main():
-    # Create reader and logger
-    reader = ServoReader()
+    # Define your servo configuration
+    servo_ids = [1, 2, 3, 4, 5, 6]
+    servo_type = "sts"  # or "hls" for HLS servos
+    
+    # Create controller and logger
+    controller = ServoController(servo_ids=servo_ids, servo_type=servo_type)
     logger = PositionLogger()
     
     # Use context manager for automatic cleanup
-    with reader:
-        print("Starting continuous reading at 10Hz...")
+    with controller:
+        print(f"Starting continuous reading of {servo_type.upper()} servos at 10Hz...")
         print("Press Ctrl+C to stop\n")
         
         try:
             # Read continuously with custom callback
-            reader.read_positions_continuous(
-                motor_ids=[1, 2, 3, 4, 5, 6],
+            controller.read_positions_continuous(
                 callback=logger.log_positions,
                 frequency=10.0  # 10Hz
             )

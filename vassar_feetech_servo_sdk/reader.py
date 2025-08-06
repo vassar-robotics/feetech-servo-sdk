@@ -1,4 +1,4 @@
-"""Core functionality for reading Feetech servo positions."""
+"""Core functionality for controlling Feetech servos (STS/HLS series)."""
 
 import platform
 import time
@@ -41,39 +41,49 @@ def find_servo_port() -> str:
     return ports[0]  # Return first port found
 
 
-class ServoReader:
+class ServoController:
     """
-    A class for reading positions from Feetech servos.
+    A comprehensive controller for Feetech servos (STS/HLS series).
     
-    This class provides methods to connect to and read positions from
-    Feetech servos (STS/SMS/HLS series) via serial communication.
+    This class provides methods to:
+    - Read positions from servos
+    - Set middle position (calibrate to 2048)
+    - Write position targets (coming soon)
+    - Write torque targets (coming soon)
     
     Attributes:
         port (str): Serial port path
+        servo_ids (List[int]): List of servo IDs to control
+        servo_type (str): Type of servo ('sts' or 'hls')
         baudrate (int): Communication baudrate
-        servo_type (str): Type of servo ('sms_sts', 'hls', or 'scscl')
     """
     
     PRESENT_POSITION_ADDR = 56  # Address for present position register
     POSITION_DATA_LENGTH = 2    # Bytes to read for position
     
-    def __init__(self, port: Optional[str] = None, baudrate: int = 1000000, 
-                 servo_type: str = "sms_sts"):
+    def __init__(self, servo_ids: List[int], servo_type: str = "sts", 
+                 port: Optional[str] = None, baudrate: int = 1000000):
         """
-        Initialize ServoReader.
+        Initialize ServoController.
         
         Args:
+            servo_ids: List of servo IDs to control (e.g., [1, 2, 3, 4, 5, 6]).
+            servo_type: Type of servo - 'sts' or 'hls' (default: 'sts').
             port: Serial port path. If None, will attempt auto-detection.
             baudrate: Communication baudrate (default: 1000000).
-            servo_type: Type of servo - 'sms_sts', 'hls', or 'scscl' (default: 'sms_sts').
         """
+        self.servo_ids = servo_ids
+        self.servo_type = servo_type.lower()
         self.port = port if port else find_servo_port()
         self.baudrate = baudrate
-        self.servo_type = servo_type.lower()
         
         self.port_handler = None
         self.packet_handler = None
         self._connected = False
+        
+        # Validate servo type
+        if self.servo_type not in ['sts', 'hls']:
+            raise ValueError(f"Unsupported servo type: {self.servo_type}. Use 'sts' or 'hls'")
         
     def connect(self) -> None:
         """
@@ -89,12 +99,10 @@ class ServoReader:
         self.port_handler = scs.PortHandler(self.port)
         
         # Initialize packet handler based on servo type
-        if self.servo_type == "sms_sts":
-            self.packet_handler = scs.sms_sts(self.port_handler)
+        if self.servo_type == "sts":
+            self.packet_handler = scs.sms_sts(self.port_handler)  # STS uses the sms_sts protocol
         elif self.servo_type == "hls":
             self.packet_handler = scs.hls(self.port_handler)
-        elif self.servo_type == "scscl":
-            self.packet_handler = scs.scscl(self.port_handler)
         else:
             raise ValueError(f"Unknown servo type: {self.servo_type}")
         
@@ -146,21 +154,24 @@ class ServoReader:
             
         return position
         
-    def read_positions(self, motor_ids: List[int]) -> Dict[int, int]:
+    def read_positions(self, motor_ids: Optional[List[int]] = None) -> Dict[int, int]:
         """
-        Read positions from multiple motors using group sync read.
+                Read positions from multiple motors using group sync read.
         
         Args:
-            motor_ids: List of motor IDs to read from.
-            
+            motor_ids: List of motor IDs to read from. If None, uses self.servo_ids.
+        
         Returns:
             dict: Dictionary mapping motor IDs to position values.
-            
+        
         Raises:
             CommunicationError: If reading fails.
         """
         if not self._connected:
             raise ConnectionError("Not connected. Call connect() first.")
+            
+        if motor_ids is None:
+            motor_ids = self.servo_ids
             
         positions = {}
         
@@ -214,13 +225,93 @@ class ServoReader:
         
         return positions
     
-    def read_positions_continuous(self, motor_ids: List[int], 
+    def set_middle_position(self, motor_ids: Optional[List[int]] = None) -> bool:
+        """
+        Set servos to middle position (2048) using the torque=128 calibration method.
+        
+        This uses the special torque=128 command to calibrate current position to 2048.
+        The calibration takes effect immediately.
+        
+        Args:
+            motor_ids: List of motor IDs to calibrate. If None, uses self.servo_ids.
+            
+        Returns:
+            bool: True if all servos successfully set to middle position.
+            
+        Raises:
+            ConnectionError: If not connected.
+            CommunicationError: If calibration fails.
+        """
+        if not self._connected:
+            raise ConnectionError("Not connected. Call connect() first.")
+            
+        if motor_ids is None:
+            motor_ids = self.servo_ids
+            
+        print("\nSetting middle position using sync write...")
+        
+        # Feetech register address for torque enable
+        TORQUE_ENABLE = 40  # Write 128 to calibrate current position to 2048
+        
+        # Create a GroupSyncWrite instance
+        group_sync_write = scs.GroupSyncWrite(self.packet_handler, TORQUE_ENABLE, 1)
+        
+        # Add all motors to the sync write
+        for motor_id in motor_ids:
+            success = group_sync_write.addParam(motor_id, [128])
+            if not success:
+                raise CommunicationError(f"Failed to add motor {motor_id} to sync write")
+        
+        # Send the sync write command
+        comm_result = group_sync_write.txPacket()
+        if comm_result != scs.COMM_SUCCESS:
+            raise CommunicationError(
+                f"Sync write failed: {self.packet_handler.getTxRxResult(comm_result)}"
+            )
+        
+        # Clear the sync write parameters
+        group_sync_write.clearParam()
+        
+        # Give servos time to process the calibration
+        time.sleep(0.2)
+        
+        # Verify positions
+        positions = self.read_positions(motor_ids)
+        
+        print("\nVerifying middle position...")
+        all_good = True
+        for motor_id in sorted(positions.keys()):
+            pos = positions[motor_id]
+            diff = pos - 2048
+            if abs(diff) > 10:
+                all_good = False
+                print(f"Motor {motor_id}: {pos} (off by {diff:+d})")
+            else:
+                print(f"Motor {motor_id}: {pos} ✓")
+        
+        if all_good:
+            print("✓ Success! All servos set to middle position (2048)")
+        else:
+            print("⚠ Some servos are not at 2048")
+            
+        return all_good
+    
+    def read_all_positions(self) -> Dict[int, int]:
+        """
+        Read positions from all configured servos.
+        
+        Returns:
+            dict: Dictionary mapping motor IDs to position values.
+        """
+        return self.read_positions(self.servo_ids)
+    
+    def read_positions_continuous(self, motor_ids: Optional[List[int]] = None, 
                                   callback=None, frequency: float = 30.0):
         """
         Continuously read positions from motors.
         
         Args:
-            motor_ids: List of motor IDs to read from.
+            motor_ids: List of motor IDs to read from. If None, uses self.servo_ids.
             callback: Optional callback function that receives positions dict.
             frequency: Reading frequency in Hz (default: 30.0).
             
@@ -228,6 +319,9 @@ class ServoReader:
         """
         if not self._connected:
             self.connect()
+            
+        if motor_ids is None:
+            motor_ids = self.servo_ids
             
         loop_time = 1.0 / frequency
         

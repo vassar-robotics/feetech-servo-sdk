@@ -2,7 +2,7 @@
 """Example showing different servo types and error handling."""
 
 from vassar_feetech_servo_sdk import (
-    ServoReader, 
+    ServoController, 
     find_servo_port,
     PortNotFoundError,
     ConnectionError,
@@ -21,19 +21,20 @@ def test_servo_type(servo_type, motor_ids):
         port = find_servo_port()
         print(f"Using port: {port}")
         
-        # Create reader for specific servo type
-        reader = ServoReader(
+        # Create controller for specific servo type
+        controller = ServoController(
+            servo_ids=motor_ids,
+            servo_type=servo_type,
             port=port,
-            baudrate=1000000,
-            servo_type=servo_type
+            baudrate=1000000
         )
         
         # Connect
-        reader.connect()
+        controller.connect()
         print(f"Connected to {servo_type.upper()} servos")
         
         # Read positions
-        positions = reader.read_positions(motor_ids)
+        positions = controller.read_all_positions()
         
         if positions:
             print(f"\nPositions for {servo_type.upper()} servos:")
@@ -43,7 +44,7 @@ def test_servo_type(servo_type, motor_ids):
             print("No positions read - check motor IDs")
             
         # Disconnect
-        reader.disconnect()
+        controller.disconnect()
         print(f"\nDisconnected from {servo_type.upper()} servos")
         
     except PortNotFoundError:
@@ -73,17 +74,16 @@ def test_servo_type(servo_type, motor_ids):
 def main():
     """Main function demonstrating different servo types."""
     print("Feetech Servo Type Example")
-    print("This example shows how to work with different servo types")
+    print("This example shows how to work with STS and HLS servo types")
     
     # Test motor IDs
     motor_ids = [1, 2, 3, 4, 5, 6]
     
-    # Test SMS/STS servos (most common)
-    test_servo_type("sms_sts", motor_ids)
+    # Test STS servos (most common)
+    test_servo_type("sts", motor_ids)
     
-    # Uncomment to test other servo types:
-    # test_servo_type("hls", motor_ids)      # HLS servos
-    # test_servo_type("scscl", motor_ids)    # SCSCL servos
+    # Uncomment to test HLS servos:
+    # test_servo_type("hls", motor_ids)      # HLS servos with torque control
     
     print("\n" + "="*50)
     print("Example completed")

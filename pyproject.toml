@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vassar-feetech-servo-sdk"
-version = "0.1.0"
+version = "0.2.1"
 description = "Vassar College's Python SDK for Feetech servo control and position reading"
 readme = "README.md"
 requires-python = ">=3.7"
@@ -15,7 +15,7 @@ authors = [
 maintainers = [
     {name = "Vassar Robotics", email = "hello@vassarrobotics.com"},
 ]
-keywords = ["robotics", "servo", "feetech", "serial", "hardware"]
+keywords = ["robotics", "servo", "feetech", "serial", "hardware", "sts", "hls", "control"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -57,7 +57,8 @@ vassar-servo = "vassar_feetech_servo_sdk.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["vassar_feetech_servo_sdk*", "scservo_sdk*"]
+include = ["vassar_feetech_servo_sdk*", "scservo_sdk*", "examples*"]
+exclude = ["dev-example*", "tests*", "docs*"]
 
 [tool.black]
 line-length = 88

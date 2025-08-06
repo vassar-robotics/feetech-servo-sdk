@@ -2,7 +2,7 @@
 
 
 class ServoReaderError(Exception):
-    """Base exception for all ServoReader errors."""
+    """Base exception for all ServoController errors."""
     pass
 
 

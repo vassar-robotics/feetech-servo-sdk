@@ -4,7 +4,7 @@ import argparse
 import sys
 from typing import List
 
-from .reader import ServoReader, find_servo_port
+from .controller import ServoController, find_servo_port
 from .exceptions import ServoReaderError
 
 
@@ -19,12 +19,15 @@ def parse_motor_ids(motor_ids_str: str) -> List[int]:
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
-        description="Read positions from Feetech servos",
+        description="Control Feetech servos (STS/HLS series)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Read from motors 1-6 at 30Hz (default)
+  # Read from motors 1-6 continuously at 30Hz
   vassar-servo
+  
+  # Set servos to middle position
+  vassar-servo --set-middle
   
   # Read from specific motors at 60Hz
   vassar-servo --motor-ids 1,3,5 --hz 60
@@ -60,9 +63,9 @@ Examples:
     parser.add_argument(
         "--servo-type",
         type=str,
-        choices=["sms_sts", "hls", "scscl"],
-        default="sms_sts",
-        help="Servo type (default: sms_sts)"
+        choices=["sts", "hls"],
+        default="sts",
+        help="Servo type: 'sts' or 'hls' (default: sts)"
     )
     
     parser.add_argument(
@@ -84,6 +87,12 @@ Examples:
         help="Output in JSON format (useful for --once)"
     )
     
+    parser.add_argument(
+        "--set-middle",
+        action="store_true",
+        help="Set servos to middle position (2048) and exit"
+    )
+    
     args = parser.parse_args()
     
     try:
@@ -97,20 +106,25 @@ Examples:
             port = find_servo_port()
             print(f"Found port: {port}")
         
-        # Create reader
-        reader = ServoReader(
+        # Create controller
+        controller = ServoController(
+            servo_ids=motor_ids,
+            servo_type=args.servo_type,
             port=port,
-            baudrate=args.baudrate,
-            servo_type=args.servo_type
+            baudrate=args.baudrate
         )
         
-        print(f"Connecting to servos on {port} at {args.baudrate} baud...")
-        reader.connect()
+        print(f"Connecting to {args.servo_type.upper()} servos on {port} at {args.baudrate} baud...")
+        controller.connect()
         print("Connected!")
         
-        if args.once:
+        if args.set_middle:
+            # Set middle position
+            success = controller.set_middle_position()
+            sys.exit(0 if success else 1)
+        elif args.once:
             # Single read
-            positions = reader.read_positions(motor_ids)
+            positions = controller.read_positions()
             
             if args.json:
                 import json
@@ -125,7 +139,7 @@ Examples:
         else:
             # Continuous read
             print(f"\nReading at {args.hz} Hz. Press Ctrl+C to stop.\n")
-            reader.read_positions_continuous(motor_ids, frequency=args.hz)
+            controller.read_positions_continuous(frequency=args.hz)
             
     except ServoReaderError as e:
         print(f"Error: {e}", file=sys.stderr)
@@ -136,8 +150,8 @@ Examples:
         print(f"Unexpected error: {e}", file=sys.stderr)
         sys.exit(1)
     finally:
-        if 'reader' in locals():
-            reader.disconnect()
+        if 'controller' in locals():
+            controller.disconnect()
 
 
 if __name__ == "__main__":

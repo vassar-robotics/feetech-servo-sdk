@@ -2,7 +2,7 @@
 
 import pytest
 from unittest.mock import Mock, patch
-from vassar_feetech_servo_sdk import ServoReader, find_servo_port, PortNotFoundError
+from vassar_feetech_servo_sdk import ServoController, find_servo_port, PortNotFoundError
 
 
 class TestFindServoPort:
@@ -50,45 +50,46 @@ class TestFindServoPort:
             find_servo_port()
 
 
-class TestServoReader:
-    """Tests for ServoReader class."""
+class TestServoController:
+    """Tests for ServoController class."""
     
     def test_init_with_port(self):
         """Test initialization with specific port."""
-        reader = ServoReader(port='/dev/ttyUSB0', baudrate=500000, servo_type='hls')
-        assert reader.port == '/dev/ttyUSB0'
-        assert reader.baudrate == 500000
-        assert reader.servo_type == 'hls'
+        controller = ServoController(servo_ids=[1, 2, 3], servo_type='hls', port='/dev/ttyUSB0', baudrate=500000)
+        assert controller.port == '/dev/ttyUSB0'
+        assert controller.baudrate == 500000
+        assert controller.servo_type == 'hls'
+        assert controller.servo_ids == [1, 2, 3]
     
-    @patch('vassar_feetech_servo_sdk.reader.find_servo_port')
+    @patch('vassar_feetech_servo_sdk.controller.find_servo_port')
     def test_init_auto_detect(self, mock_find_port):
         """Test initialization with auto-detected port."""
         mock_find_port.return_value = '/dev/ttyUSB0'
-        reader = ServoReader()
-        assert reader.port == '/dev/ttyUSB0'
-        assert reader.baudrate == 1000000
-        assert reader.servo_type == 'sms_sts'
+        controller = ServoController([1, 2, 3])
+        assert controller.port == '/dev/ttyUSB0'
+        assert controller.baudrate == 1000000
+        assert controller.servo_type == 'sts'
     
     def test_servo_type_validation(self):
         """Test servo type validation."""
         # Valid types should work
-        for servo_type in ['sms_sts', 'hls', 'scscl']:
-            reader = ServoReader(port='/dev/test', servo_type=servo_type)
-            assert reader.servo_type == servo_type
+        for servo_type in ['sts', 'hls']:
+            controller = ServoController([1, 2, 3], servo_type=servo_type, port='/dev/test')
+            assert controller.servo_type == servo_type
     
     def test_context_manager(self):
         """Test context manager functionality."""
-        with patch('vassar_feetech_servo_sdk.reader.scs.PortHandler'):
-            reader = ServoReader(port='/dev/test')
+        with patch('vassar_feetech_servo_sdk.controller.scs.PortHandler'):
+            controller = ServoController([1, 2, 3], port='/dev/test')
             # Mock the connection methods
-            reader.connect = Mock()
-            reader.disconnect = Mock()
+            controller.connect = Mock()
+            controller.disconnect = Mock()
             
-            with reader as r:
-                assert r is reader
-                reader.connect.assert_called_once()
+            with controller as c:
+                assert c is controller
+                controller.connect.assert_called_once()
             
-            reader.disconnect.assert_called_once()
+            controller.disconnect.assert_called_once()
 
 
 # Add more tests as needed for:
