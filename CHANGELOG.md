@@ -5,6 +5,23 @@ All notable changes to the vassar-feetech-servo-sdk project will be documented i
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-08-06
+
+### Added
+- Improved automatic servo disabling - now integrated into `disconnect()` method
+- Better KeyboardInterrupt (Ctrl+C) handling to ensure servos are disabled on interrupt
+
+### Changed
+- `disconnect()` now automatically calls `disable_all_servos()` before closing port
+- Updated torque values in examples to safer levels (80/-120 instead of 500/-300)
+- Variable torque example now maxes at 200 instead of 1000
+
+### Fixed
+- Servos are now properly disabled when script is interrupted with Ctrl+C
+
+### Removed
+- `servo_types.py` example (redundant with other examples)
+
 ## [0.3.1] - 2025-08-06
 
 ### Added
