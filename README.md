@@ -198,6 +198,17 @@ The package includes several example scripts in the `examples/` directory:
 - `servo_types.py` - Demonstrates differences between STS and HLS servos
 - `set_middle_position.py` - Shows how to calibrate servos to middle position
 
+## Testing
+
+Run the test suite:
+
+```bash
+./run_tests.sh  # Installs dev dependencies and runs tests with coverage
+# or
+pip install -r requirements-dev.txt
+python -m pytest tests/ -v
+```
+
 ## Acknowledgments
 
 Built on top of the excellent `scservo_sdk` library for Feetech servo communication.
