@@ -5,6 +5,21 @@ All notable changes to the vassar-feetech-servo-sdk project will be documented i
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-08-06
+
+### Added
+- `set_motor_id()` method to permanently change servo IDs
+- Example script `change_servo_id.py` demonstrating ID changes
+- Support for both STS and HLS servos in ID changing
+- Safety checks and user confirmation for ID changes
+- Documentation for changing servo IDs in README
+
+### Changed
+- Fixed ping command handling in `set_motor_id()` method
+
+### Removed
+- `basic_usage.py` example (functionality covered by other examples)
+
 ## [0.2.3] - 2025-08-06
 
 ### Changed
