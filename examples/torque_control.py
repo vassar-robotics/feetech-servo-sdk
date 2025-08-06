@@ -25,13 +25,13 @@ def main():
         
         # Example 1: Simple torque control
         print("\n--- Applying torque ---")
-        print("Motor 1: 500 (3.25A forward)")
-        print("Motor 2: -300 (1.95A reverse)")
+        print("Motor 1: 80 (0.52A forward)")
+        print("Motor 2: -120 (0.78A reverse)")
         print("Motor 3: 0 (no torque)")
         
         torque_values = {
-            1: 30,   # Positive = one direction
-            2: -10,  # Negative = opposite direction
+            1: 80,    # Positive = one direction
+            2: -120,  # Negative = opposite direction
             3: 0      # Zero = no torque
         }
         
@@ -43,7 +43,7 @@ def main():
         
         # Let motors run with torque for a bit
         print("\nApplying torque for 3 seconds...")
-        time.sleep(30)
+        time.sleep(3)
         
         # Example 2: Stop all motors
         print("\n--- Stopping all motors ---")
@@ -57,7 +57,7 @@ def main():
         print("\n--- Variable torque example ---")
         print("Gradually increasing torque on motor 1...")
         
-        for torque in range(0, 1001, 100):  # 0 to 1000 in steps of 100
+        for torque in range(0, 201, 20):  # 0 to 200 in steps of 20
             controller.write_torque({1: torque})
             print(f"Torque: {torque} ({torque * 6.5}mA)")
             time.sleep(0.5)
