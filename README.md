@@ -193,14 +193,28 @@ sudo usermod -a -G dialout $USER
 2. Verify baudrate matches servo configuration (default: 1000000)
 3. Ensure proper wiring (TX/RX not swapped)
 
+## Examples
+
+The package includes several example scripts in the `examples/` directory:
+
+- `basic_usage.py` - Simple example showing how to connect and read servo positions
+- `continuous_reading.py` - Real-time monitoring with custom callbacks
+- `servo_types.py` - Demonstrates differences between STS and HLS servos
+- `set_middle_position.py` - Shows how to calibrate servos to middle position
+
+Run any example with:
+```bash
+python examples/basic_usage.py
+```
+
 ## Development
 
 ### Setup Development Environment
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/vassar-feetech-servo-sdk.git
-cd vassar-feetech-servo-sdk
+git clone https://github.com/vassar-robotics/feetech-servo-sdk.git
+cd feetech-servo-sdk
 
 # Install in development mode with dev dependencies
 pip install -e ".[dev]"
@@ -209,10 +223,10 @@ pip install -e ".[dev]"
 pytest
 
 # Format code
-black feetech_reader
+black vassar_feetech_servo_sdk
 
 # Type checking
-mypy feetech_reader
+mypy vassar_feetech_servo_sdk
 ```
 
 ### Building and Publishing
