@@ -1,1 +1,1 @@
-"""Test package for feetech_reader."""
+"""Test suite for vassar_feetech_servo_sdk."""
