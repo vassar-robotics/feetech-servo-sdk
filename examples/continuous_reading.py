@@ -46,11 +46,24 @@ def main():
         print("Press Ctrl+C to stop\n")
         
         try:
-            # Read continuously with custom callback
-            controller.read_positions_continuous(
-                callback=logger.log_positions,
-                frequency=10.0  # 10Hz
-            )
+            # Read continuously at 10Hz
+            frequency = 10.0
+            loop_time = 1.0 / frequency
+            
+            while True:
+                start = time.perf_counter()
+                
+                # Read positions
+                positions = controller.read_positions()
+                
+                # Log with custom callback
+                logger.log_positions(positions)
+                
+                # Maintain rate
+                elapsed = time.perf_counter() - start
+                if elapsed < loop_time:
+                    time.sleep(loop_time - elapsed)
+                    
         except KeyboardInterrupt:
             print(f"\nTotal readings: {logger.reading_count}")
             print(f"Duration: {time.time() - logger.start_time:.1f}s")

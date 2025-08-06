@@ -2,6 +2,7 @@
 
 import argparse
 import sys
+import time
 from typing import List
 
 from .controller import ServoController, find_servo_port
@@ -154,10 +155,24 @@ Examples:
                     percent = (pos / 4095) * 100
                     print(f"{motor_id:<6} | {pos:>4} | {percent:>4.0f}%")
             
-            controller.read_positions_continuous(
-                callback=display_positions,
-                frequency=args.hz
-            )
+            # Continuous reading loop
+            loop_time = 1.0 / args.hz
+            try:
+                while True:
+                    start = time.perf_counter()
+                    
+                    # Read positions
+                    positions = controller.read_positions()
+                    
+                    # Display
+                    display_positions(positions)
+                    
+                    # Maintain rate
+                    elapsed = time.perf_counter() - start
+                    if elapsed < loop_time:
+                        time.sleep(loop_time - elapsed)
+            except KeyboardInterrupt:
+                pass  # Handle gracefully
             
     except ServoReaderError as e:
         print(f"Error: {e}", file=sys.stderr)

@@ -327,45 +327,7 @@ class ServoController:
         """
         return self.read_positions(self.servo_ids)
     
-    def read_positions_continuous(self, motor_ids: Optional[List[int]] = None, 
-                                  callback=None, frequency: float = 30.0):
-        """
-        Continuously read positions from motors.
-        
-        Args:
-            motor_ids: List of motor IDs to read from. If None, uses self.servo_ids.
-            callback: Optional callback function that receives positions dict.
-                     If not provided, positions are read but not displayed.
-            frequency: Reading frequency in Hz (default: 30.0).
-            
-        The method will run until KeyboardInterrupt is received.
-        """
-        if not self._connected:
-            self.connect()
-            
-        if motor_ids is None:
-            motor_ids = self.servo_ids
-            
-        loop_time = 1.0 / frequency
-        
-        try:
-            while True:
-                start = time.perf_counter()
-                
-                # Read positions
-                positions = self.read_positions(motor_ids)
-                
-                # Call callback if provided
-                if callback:
-                    callback(positions)
-                
-                # Maintain rate
-                elapsed = time.perf_counter() - start
-                if elapsed < loop_time:
-                    time.sleep(loop_time - elapsed)
-                    
-        except KeyboardInterrupt:
-            pass  # Handle interrupt gracefully without output
+
 
     
     def __enter__(self):

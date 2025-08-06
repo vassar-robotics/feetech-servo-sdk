@@ -91,14 +91,21 @@ with ServoController([1, 2, 3], "sts") as controller:
     print(positions)
 
 # Continuous reading with callback
+import time
+
 def my_callback(positions):
     print(f"Got positions: {positions}")
 
 with ServoController([1, 2, 3], "hls") as controller:
-    controller.read_positions_continuous(
-        callback=my_callback,
-        frequency=50.0
-    )
+    # Custom continuous reading loop
+    loop_time = 1.0 / 50.0  # 50Hz
+    while True:
+        start = time.perf_counter()
+        positions = controller.read_positions()
+        my_callback(positions)
+        elapsed = time.perf_counter() - start
+        if elapsed < loop_time:
+            time.sleep(loop_time - elapsed)
 ```
 
 ### Advanced Usage
@@ -148,7 +155,6 @@ ServoController(servo_ids, servo_type="sts", port=None, baudrate=1000000)
 - `read_positions(motor_ids=None)`: Read multiple motor positions
 - `read_all_positions()`: Read all configured servo positions
 - `set_middle_position(motor_ids=None)`: Calibrate servos to middle position (2048)
-- `read_positions_continuous(motor_ids=None, callback=None, frequency=30.0)`: Continuously read positions
 
 ### Utility Functions
 
