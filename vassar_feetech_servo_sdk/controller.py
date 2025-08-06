@@ -365,7 +365,7 @@ class ServoController:
                     time.sleep(loop_time - elapsed)
                     
         except KeyboardInterrupt:
-            print("\nStopped")
+            pass  # Handle interrupt gracefully without output
 
     
     def __enter__(self):
