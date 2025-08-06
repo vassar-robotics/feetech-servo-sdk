@@ -2,7 +2,6 @@
 
 [![PyPI version](https://badge.fury.io/py/vassar-feetech-servo-sdk.svg)](https://badge.fury.io/py/vassar-feetech-servo-sdk)
 [![Stability: Stable](https://img.shields.io/badge/stability-stable-green.svg)](https://github.com/vassar-robotics/feetech-servo-sdk)
-[![No Breaking Changes](https://img.shields.io/badge/breaking%20changes-none-brightgreen)](https://github.com/vassar-robotics/feetech-servo-sdk)
 
 A comprehensive Python SDK for controlling Feetech servos (STS/HLS series).
 
