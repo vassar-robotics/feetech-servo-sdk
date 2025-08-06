@@ -5,6 +5,11 @@ All notable changes to the vassar-feetech-servo-sdk project will be documented i
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] - 2025-08-06
+
+### Changed
+- Updated package description from "Vassar College's" to "Vassar Robotics'"
+
 ## [0.2.2] - 2025-08-06
 
 ### Changed

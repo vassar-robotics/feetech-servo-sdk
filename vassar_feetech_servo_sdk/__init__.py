@@ -6,7 +6,7 @@ controlling Feetech servos (STS/HLS series). Features include reading positions,
 setting middle position, and future support for position/torque control.
 """
 
-__version__ = "0.2.2"
+__version__ = "0.2.3"
 __author__ = "Vassar Robotics"
 __email__ = "hello@vassarrobotics.com"
 

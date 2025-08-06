@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vassar-feetech-servo-sdk"
-version = "0.2.2"
-description = "Vassar College's Python SDK for Feetech servo control and position reading"
+version = "0.2.3"
+description = "Vassar Robotics' Python SDK for Feetech servo control and position reading"
 readme = "README.md"
 requires-python = ">=3.7"
 license = {text = "MIT"}
