@@ -1,6 +1,6 @@
-# Robot Position Tools (Minimal)
+# Feetech Servo SDK
 
-Minimal scripts to read positions and calibrate Feetech servo motors.
+Minimal Python SDK for Feetech servo motors - clean, simple, and effective.
 
 ## Requirements
 
