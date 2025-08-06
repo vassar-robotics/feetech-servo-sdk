@@ -4,6 +4,14 @@
 echo "Running vassar-feetech-servo-sdk test suite..."
 echo "=============================================="
 
+# Install development dependencies
+echo "Installing development dependencies..."
+pip install -r requirements-dev.txt
+
+echo ""
+echo "Running tests with coverage..."
+echo "------------------------------"
+
 # Run tests with coverage
 python -m pytest tests/ -v --cov=vassar_feetech_servo_sdk --cov-report=term-missing
 
