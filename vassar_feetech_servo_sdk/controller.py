@@ -335,6 +335,7 @@ class ServoController:
         Args:
             motor_ids: List of motor IDs to read from. If None, uses self.servo_ids.
             callback: Optional callback function that receives positions dict.
+                     If not provided, positions are read but not displayed.
             frequency: Reading frequency in Hz (default: 30.0).
             
         The method will run until KeyboardInterrupt is received.
@@ -357,9 +358,6 @@ class ServoController:
                 # Call callback if provided
                 if callback:
                     callback(positions)
-                else:
-                    # Default display
-                    self._display_positions(positions)
                 
                 # Maintain rate
                 elapsed = time.perf_counter() - start
@@ -368,20 +366,7 @@ class ServoController:
                     
         except KeyboardInterrupt:
             print("\nStopped")
-            
-    def _display_positions(self, positions: Dict[int, int]) -> None:
-        """Default display function for positions."""
-        # Clear previous lines
-        print("\033[K" * (len(positions) + 3), end="")
-        print(f"\033[{len(positions) + 3}A", end="")
-        
-        # Display
-        print(f"{'Motor':<6} | {'Pos':>4} | {'%':>5}")
-        print("-" * 20)
-        for motor_id in sorted(positions.keys()):
-            pos = positions[motor_id]
-            percent = (pos / 4095) * 100
-            print(f"{motor_id:<6} | {pos:>4} | {percent:>4.0f}%")
+
     
     def __enter__(self):
         """Context manager entry."""

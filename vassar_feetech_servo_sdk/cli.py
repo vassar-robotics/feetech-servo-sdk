@@ -139,7 +139,25 @@ Examples:
         else:
             # Continuous read
             print(f"\nReading at {args.hz} Hz. Press Ctrl+C to stop.\n")
-            controller.read_positions_continuous(frequency=args.hz)
+            
+            def display_positions(positions):
+                """Display positions with terminal clearing."""
+                # Clear previous lines
+                print("\033[K" * (len(positions) + 3), end="")
+                print(f"\033[{len(positions) + 3}A", end="")
+                
+                # Display
+                print(f"{'Motor':<6} | {'Pos':>4} | {'%':>5}")
+                print("-" * 20)
+                for motor_id in sorted(positions.keys()):
+                    pos = positions[motor_id]
+                    percent = (pos / 4095) * 100
+                    print(f"{motor_id:<6} | {pos:>4} | {percent:>4.0f}%")
+            
+            controller.read_positions_continuous(
+                callback=display_positions,
+                frequency=args.hz
+            )
             
     except ServoReaderError as e:
         print(f"Error: {e}", file=sys.stderr)
