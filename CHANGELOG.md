@@ -5,18 +5,22 @@ All notable changes to the vassar-feetech-servo-sdk project will be documented i
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2025-08-06
+
+### Added
+- `set_operating_mode()` method to configure servo behavior (position/speed/torque/PWM)
+- `write_torque()` method for HLS servo torque control with automatic mode switching
+- Example script `torque_control.py` demonstrating HLS torque control usage
+- Documentation for torque control features in README
+
 ## [0.3.0] - 2025-08-06
 
 ### Added
 - `set_motor_id()` method to permanently change servo IDs
-- `set_operating_mode()` method to configure servo behavior (position/speed/torque/PWM)
-- `write_torque()` method for HLS servo torque control with automatic mode switching
 - Example script `change_servo_id.py` demonstrating ID changes
-- Example script `torque_control.py` demonstrating HLS torque control
 - Support for both STS and HLS servos in ID changing
 - Safety checks and user confirmation for ID changes
 - Documentation for changing servo IDs in README
-- Documentation for torque control in README
 
 ### Changed
 - Fixed ping command handling in `set_motor_id()` method

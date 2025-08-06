@@ -30,8 +30,8 @@ def main():
         print("Motor 3: 0 (no torque)")
         
         torque_values = {
-            1: 500,   # Positive = one direction
-            2: -300,  # Negative = opposite direction
+            1: 30,   # Positive = one direction
+            2: -10,  # Negative = opposite direction
             3: 0      # Zero = no torque
         }
         
@@ -43,7 +43,7 @@ def main():
         
         # Let motors run with torque for a bit
         print("\nApplying torque for 3 seconds...")
-        time.sleep(3)
+        time.sleep(30)
         
         # Example 2: Stop all motors
         print("\n--- Stopping all motors ---")
