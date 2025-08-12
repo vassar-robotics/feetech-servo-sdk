@@ -25,13 +25,13 @@ def main():
         
         # Example 1: Simple torque control
         print("\n--- Applying torque ---")
-        print("Motor 1: 0.04 (4% forward)")
-        print("Motor 2: -0.06 (6% reverse)")
+        print("Motor 1: 0.4 (40% forward)")
+        print("Motor 2: -0.3 (30% reverse)")
         print("Motor 3: 0 (no torque)")
         
         torque_values = {
-            1: 0.04,   # Positive = one direction (4% of max torque)
-            2: -0.06,  # Negative = opposite direction (6% of max torque)
+            1: 0.4,   # Positive = one direction (40% of max torque)
+            2: -0.3,  # Negative = opposite direction (30% of max torque)
             3: 0       # Zero = no torque
         }
         
@@ -42,8 +42,8 @@ def main():
             print(f"Motor {motor_id}: {status}")
         
         # Let motors run with torque for a bit
-        print("\nApplying torque for 3 seconds...")
-        time.sleep(3)
+        print("\nApplying torque for 15 seconds...")
+        time.sleep(15)
         
         # Example 2: Stop all motors
         print("\n--- Stopping all motors ---")
@@ -58,7 +58,7 @@ def main():
         print("Gradually increasing torque on motor 1...")
         
         for i in range(0, 11):  # 0 to 10 steps
-            torque = i * 0.01  # 0.00 to 0.10 in steps of 0.01
+            torque = i * 0.1  # 0.00 to 1.00 in steps of 0.10
             controller.write_torque({1: torque})
             print(f"Torque: {torque:.2f} ({int(torque * 100)}% forward)")
             time.sleep(0.5)
