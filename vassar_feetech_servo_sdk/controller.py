@@ -559,8 +559,13 @@ class ServoController:
                     print(f"Warning: Torque {torque_normalized} out of range for motor {motor_id}. Clamping to [-1.0, 1.0]")
                     torque_normalized = max(-1.0, min(1.0, torque_normalized))
                 
-                # Map from -1.0 to 1.0 to -2047 to 2047
-                torque_value = int(torque_normalized * 2047)
+                # Map torque with direction bit in bit 15
+                # Bits 0-8: magnitude (0-511), Bit 15: direction (0=forward, 1=reverse)
+                abs_torque = int(abs(torque_normalized) * (3000/6.5))  # unit is 6.5 mA and the max current is 3 A
+                if torque_normalized < 0:
+                    torque_value = abs_torque | 0x8000  # Set bit 15 for reverse
+                else:
+                    torque_value = abs_torque  # Bit 15 = 0 for forward
                 
                 # Read current mode
                 mode_data, comm_result, error = self.packet_handler.read1ByteTxRx(motor_id, MODE_ADDR)

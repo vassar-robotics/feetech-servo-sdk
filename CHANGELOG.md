@@ -5,6 +5,14 @@ All notable changes to the vassar-feetech-servo-sdk project will be documented i
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-08-06
+
+### Fixed
+- Fixed HLS servo torque control to use proper bit format
+  - Bit 15 now correctly used for direction (0=forward, 1=reverse)
+  - Magnitude calculated based on current units (6.5mA per unit, max 3A)
+  - Previous implementation incorrectly used signed integer format
+
 ## [0.5.0] - 2025-08-06
 
 ### Changed
