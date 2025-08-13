@@ -5,11 +5,11 @@ from vassar_feetech_servo_sdk import ServoController
 
 def main():
     # Define your servo configuration
-    servo_ids = [1, 2, 3, 4, 5, 6]
-    servo_type = "sts"  # or "hls" for HLS servos
+    servo_ids = [1, 2, 3, 4, 5, 6, 7]
+    servo_type = "hls"  # or "hls" for HLS servos
     
     # Create controller
-    controller = ServoController(servo_ids=servo_ids, servo_type=servo_type)
+    controller = ServoController(servo_ids=servo_ids, servo_type=servo_type, port="/dev/tty.usbmodem5A7A0581001")
     
     try:
         # Connect to servos
