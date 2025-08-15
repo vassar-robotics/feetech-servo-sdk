@@ -561,7 +561,7 @@ class ServoController:
                 
                 # Map torque with direction bit in bit 15
                 # Bits 0-10: magnitude (0-2047), Bit 15: direction (0=forward, 1=reverse)
-                abs_torque = int(abs(torque_normalized) * 2047)
+                abs_torque = int(abs(torque_normalized) * 2047 * 0.95)  # 0.95 is for safety factor
                 if torque_normalized < 0:
                     torque_value = abs_torque | 0x8000  # Set bit 15 for reverse
                 else:
@@ -624,8 +624,8 @@ class ServoController:
                               Only supported for HLS servos.
                               Example: {1: 0.5, 2: 0.8}
                               
-            speed: Goal speed for all servos (0-32767, 0.732RPM/unit). 
-                   0 = no movement. Default: 100 (~73.2 RPM).
+            speed: Goal speed for all servos (0-100, 0.732RPM/unit). 
+                   0 = no movement; 100 = max speed. Default: 100 (~73.2 RPM).
                    
             acceleration: Acceleration for all servos (0-254, 8.7°/s²/unit).
                          0 = maximum acceleration (default).

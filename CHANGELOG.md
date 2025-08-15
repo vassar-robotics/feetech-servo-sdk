@@ -5,6 +5,24 @@ All notable changes to the vassar-feetech-servo-sdk project will be documented i
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-08-06
+
+### Added
+- New `write_position()` method for efficient position control
+  - Uses `SyncWritePosEx` for optimal performance with multiple servos
+  - Support for optional torque limit (HLS servos only)
+  - Speed and acceleration parameters for motion control
+  - Automatically switches servos to position mode when needed
+- New example: `position_control.py` demonstrating position control features
+
+### Changed
+- `write_torque()` now uses proper torque scaling (0-2047) with 0.95 safety factor
+- Default speed parameter in `write_position()` set to 100 for safe operation
+- Speed parameter documentation corrected (0 = no movement, not max speed)
+
+### Fixed
+- Speed parameter range documentation corrected to 0-100 units
+
 ## [1.1.0] - 2025-08-06
 
 ### Fixed
