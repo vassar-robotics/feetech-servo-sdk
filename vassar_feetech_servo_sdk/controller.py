@@ -606,9 +606,11 @@ class ServoController:
         return results
     
     def write_position(self, position_dict: Dict[int, int], 
-                      torque_limit_dict: Optional[Dict[int, float]] = None) -> Dict[int, bool]:
+                      torque_limit_dict: Optional[Dict[int, float]] = None,
+                      speed: int = 0,
+                      acceleration: int = 0) -> Dict[int, bool]:
         """
-        Write position values to servos.
+        Write position values to servos using efficient SyncWritePosEx method.
         
         Automatically switches servos to position mode (mode 0) if needed.
         
@@ -621,6 +623,12 @@ class ServoController:
                               Torque limit range: 0.0 to 1.0 (normalized).
                               Only supported for HLS servos.
                               Example: {1: 0.5, 2: 0.8}
+                              
+            speed: Goal speed for all servos (0-32767, 0.732RPM/unit). 
+                   0 = maximum speed (default).
+                   
+            acceleration: Acceleration for all servos (0-254, 8.7°/s²/unit).
+                         0 = maximum acceleration (default).
                         
         Returns:
             dict: Dictionary mapping motor IDs to success status.
@@ -640,18 +648,12 @@ class ServoController:
         # Memory addresses
         MODE_ADDR = 33            # Operating mode register (same for STS/HLS)
         TORQUE_ENABLE_ADDR = 40   # Torque enable register
-        GOAL_POSITION_ADDR = 42   # Goal position register (2 bytes)
-        TORQUE_LIMIT_ADDR = 48    # Torque limit register (2 bytes, HLS only)
         
         results = {}
         
-        for motor_id, position in position_dict.items():
+        # First pass: ensure all servos are in position mode and torque enabled
+        for motor_id in position_dict.keys():
             try:
-                # Validate position range
-                if not (0 <= position <= 4095):
-                    print(f"Warning: Position {position} out of range for motor {motor_id}. Clamping to [0, 4095]")
-                    position = max(0, min(4095, position))
-                
                 # Read current mode
                 mode_data, comm_result, error = self.packet_handler.read1ByteTxRx(motor_id, MODE_ADDR)
                 
@@ -674,34 +676,66 @@ class ServoController:
                     comm_result, error = self.packet_handler.write1ByteTxRx(motor_id, TORQUE_ENABLE_ADDR, 1)
                     if comm_result != scs.COMM_SUCCESS:
                         print(f"Warning: Failed to enable torque for motor {motor_id}")
+                        
+            except Exception as e:
+                print(f"Error preparing motor {motor_id}: {e}")
+                results[motor_id] = False
+        
+        # Clear any existing sync write parameters
+        self.packet_handler.groupSyncWrite.clearParam()
+        
+        # Second pass: add parameters for sync write
+        for motor_id, position in position_dict.items():
+            if motor_id in results and results[motor_id] is False:
+                continue  # Skip motors that failed in first pass
                 
-                # Set torque limit if provided (HLS only)
-                if torque_limit_dict and motor_id in torque_limit_dict:
+            try:
+                # Validate position range
+                if not (0 <= position <= 4095):
+                    print(f"Warning: Position {position} out of range for motor {motor_id}. Clamping to [0, 4095]")
+                    position = max(0, min(4095, position))
+                
+                # Get torque limit for this motor
+                if self.servo_type == "hls" and torque_limit_dict and motor_id in torque_limit_dict:
                     torque_limit_normalized = torque_limit_dict[motor_id]
                     if not (0.0 <= torque_limit_normalized <= 1.0):
                         print(f"Warning: Torque limit {torque_limit_normalized} out of range for motor {motor_id}. Clamping to [0.0, 1.0]")
                         torque_limit_normalized = max(0.0, min(1.0, torque_limit_normalized))
                     
                     # Convert to 0-1000 range (0.1% units)
-                    torque_limit_value = int(torque_limit_normalized * 1000)
-                    
-                    comm_result, error = self.packet_handler.write2ByteTxRx(motor_id, TORQUE_LIMIT_ADDR, torque_limit_value)
-                    if comm_result != scs.COMM_SUCCESS:
-                        print(f"Warning: Failed to set torque limit for motor {motor_id}")
+                    torque_value = int(torque_limit_normalized * 1000)
+                elif self.servo_type == "hls":
+                    # Default torque limit for HLS (100%)
+                    torque_value = 1000
                 
-                # Write position value
-                comm_result, error = self.packet_handler.write2ByteTxRx(motor_id, GOAL_POSITION_ADDR, position)
+                # Add parameters using SyncWritePosEx
+                if self.servo_type == "hls":
+                    add_result = self.packet_handler.SyncWritePosEx(motor_id, position, speed, acceleration, torque_value)
+                else:  # STS
+                    add_result = self.packet_handler.SyncWritePosEx(motor_id, position, speed, acceleration)
                 
-                if comm_result != scs.COMM_SUCCESS:
-                    print(f"Failed to write position for motor {motor_id}: {self.packet_handler.getTxRxResult(comm_result)}")
+                if not add_result:
+                    print(f"Failed to add sync write parameters for motor {motor_id}")
                     results[motor_id] = False
                 else:
                     results[motor_id] = True
                     
             except Exception as e:
-                print(f"Error writing position for motor {motor_id}: {e}")
+                print(f"Error adding parameters for motor {motor_id}: {e}")
                 results[motor_id] = False
-                
+        
+        # Execute sync write
+        comm_result = self.packet_handler.groupSyncWrite.txPacket()
+        if comm_result != scs.COMM_SUCCESS:
+            print(f"Sync write failed: {self.packet_handler.getTxRxResult(comm_result)}")
+            # Mark all as failed if sync write failed
+            for motor_id in position_dict.keys():
+                if motor_id not in results:
+                    results[motor_id] = False
+        
+        # Clear sync write parameters
+        self.packet_handler.groupSyncWrite.clearParam()
+        
         return results
     
     def disable_all_servos(self) -> None:

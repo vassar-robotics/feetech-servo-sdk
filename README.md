@@ -110,12 +110,19 @@ positions = {
 results = controller.write_position(positions)
 print(f"Position write results: {results}")
 
+# Position control with speed and acceleration
+results = controller.write_position(
+    positions, 
+    speed=60,        # 60 * 0.732 = ~44 RPM
+    acceleration=50  # 50 * 8.7 = 435°/s²
+)
+
 # For HLS servos only: Position control with torque limit
 if controller.servo_type == "hls":
     positions_with_limit = {1: 2048, 2: 2048}
     torque_limits = {1: 0.5, 2: 0.8}  # 50% and 80% torque limit
     
-    results = controller.write_position(positions_with_limit, torque_limits)
+    results = controller.write_position(positions_with_limit, torque_limits, speed=40)
     print(f"Position write with torque limit: {results}")
 
 controller.disconnect()
@@ -197,7 +204,7 @@ ServoController(servo_ids, servo_type="sts", port=None, baudrate=1000000)
 - `set_middle_position(motor_ids=None)`: Calibrate servos to middle position (2048)
 - `set_motor_id(current_id, new_id, confirm=True)`: Change a servo's ID (requires power cycle)
 - `set_operating_mode(motor_id, mode)`: Set servo operating mode (0-3)
-- `write_position(position_dict, torque_limit_dict=None)`: Write position values to servos (auto-switches to position mode)
+- `write_position(position_dict, torque_limit_dict=None, speed=0, acceleration=0)`: Write position values to servos (auto-switches to position mode)
 - `write_torque(torque_dict)`: Write torque values to HLS servos (auto-switches to torque mode)
 - `disable_all_servos()`: Disable torque on all servos (called automatically on cleanup)
 
