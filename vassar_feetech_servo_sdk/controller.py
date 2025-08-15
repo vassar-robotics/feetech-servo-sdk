@@ -625,7 +625,7 @@ class ServoController:
                               Example: {1: 0.5, 2: 0.8}
                               
             speed: Goal speed for all servos (0-32767, 0.732RPM/unit). 
-                   0 = maximum speed. Default: 100 (~73.2 RPM).
+                   0 = no movement. Default: 100 (~73.2 RPM).
                    
             acceleration: Acceleration for all servos (0-254, 8.7°/s²/unit).
                          0 = maximum acceleration (default).
