@@ -560,8 +560,8 @@ class ServoController:
                     torque_normalized = max(-1.0, min(1.0, torque_normalized))
                 
                 # Map torque with direction bit in bit 15
-                # Bits 0-8: magnitude (0-511), Bit 15: direction (0=forward, 1=reverse)
-                abs_torque = int(abs(torque_normalized) * (3000/6.5))  # unit is 6.5 mA and the max current is 3 A
+                # Bits 0-10: magnitude (0-2047), Bit 15: direction (0=forward, 1=reverse)
+                abs_torque = int(abs(torque_normalized) * 2047)
                 if torque_normalized < 0:
                     torque_value = abs_torque | 0x8000  # Set bit 15 for reverse
                 else:
@@ -607,7 +607,7 @@ class ServoController:
     
     def write_position(self, position_dict: Dict[int, int], 
                       torque_limit_dict: Optional[Dict[int, float]] = None,
-                      speed: int = 0,
+                      speed: int = 100,
                       acceleration: int = 0) -> Dict[int, bool]:
         """
         Write position values to servos using efficient SyncWritePosEx method.
@@ -625,7 +625,7 @@ class ServoController:
                               Example: {1: 0.5, 2: 0.8}
                               
             speed: Goal speed for all servos (0-32767, 0.732RPM/unit). 
-                   0 = maximum speed (default).
+                   0 = maximum speed. Default: 100 (~73.2 RPM).
                    
             acceleration: Acceleration for all servos (0-254, 8.7°/s²/unit).
                          0 = maximum acceleration (default).
