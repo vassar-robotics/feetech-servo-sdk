@@ -91,6 +91,36 @@ controller = ServoController(servo_ids=[10], servo_type="sts")
 controller.connect()
 ```
 
+### Position Control
+
+```python
+from vassar_feetech_servo_sdk import ServoController
+
+# Connect to servos (STS or HLS)
+controller = ServoController(servo_ids=[1, 2, 3], servo_type="hls")
+controller.connect()
+
+# Write position values (automatically switches to position mode)
+positions = {
+    1: 1024,   # ~90° (position 0-4095)
+    2: 2048,   # ~180° (middle position)
+    3: 3072    # ~270°
+}
+
+results = controller.write_position(positions)
+print(f"Position write results: {results}")
+
+# For HLS servos only: Position control with torque limit
+if controller.servo_type == "hls":
+    positions_with_limit = {1: 2048, 2: 2048}
+    torque_limits = {1: 0.5, 2: 0.8}  # 50% and 80% torque limit
+    
+    results = controller.write_position(positions_with_limit, torque_limits)
+    print(f"Position write with torque limit: {results}")
+
+controller.disconnect()
+```
+
 ### Torque Control (HLS Only)
 
 ```python
@@ -167,6 +197,7 @@ ServoController(servo_ids, servo_type="sts", port=None, baudrate=1000000)
 - `set_middle_position(motor_ids=None)`: Calibrate servos to middle position (2048)
 - `set_motor_id(current_id, new_id, confirm=True)`: Change a servo's ID (requires power cycle)
 - `set_operating_mode(motor_id, mode)`: Set servo operating mode (0-3)
+- `write_position(position_dict, torque_limit_dict=None)`: Write position values to servos (auto-switches to position mode)
 - `write_torque(torque_dict)`: Write torque values to HLS servos (auto-switches to torque mode)
 - `disable_all_servos()`: Disable torque on all servos (called automatically on cleanup)
 

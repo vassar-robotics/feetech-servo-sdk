@@ -605,6 +605,105 @@ class ServoController:
                 
         return results
     
+    def write_position(self, position_dict: Dict[int, int], 
+                      torque_limit_dict: Optional[Dict[int, float]] = None) -> Dict[int, bool]:
+        """
+        Write position values to servos.
+        
+        Automatically switches servos to position mode (mode 0) if needed.
+        
+        Args:
+            position_dict: Dictionary mapping motor IDs to position values.
+                          Position range: 0 to 4095 (0.087°/unit).
+                          Example: {1: 2048, 2: 1024, 3: 3072}
+                          
+            torque_limit_dict: Optional dictionary mapping motor IDs to torque limits.
+                              Torque limit range: 0.0 to 1.0 (normalized).
+                              Only supported for HLS servos.
+                              Example: {1: 0.5, 2: 0.8}
+                        
+        Returns:
+            dict: Dictionary mapping motor IDs to success status.
+                  Example: {1: True, 2: True, 3: False}
+                  
+        Raises:
+            ConnectionError: If not connected.
+            ValueError: If torque_limit_dict is provided for STS servos.
+        """
+        if not self._connected:
+            raise ConnectionError("Not connected. Call connect() first.")
+            
+        # Check torque limit compatibility
+        if torque_limit_dict and self.servo_type == "sts":
+            raise ValueError("Torque limit is only supported for HLS servos. STS servos do not have dynamic torque limit control.")
+            
+        # Memory addresses
+        MODE_ADDR = 33            # Operating mode register (same for STS/HLS)
+        TORQUE_ENABLE_ADDR = 40   # Torque enable register
+        GOAL_POSITION_ADDR = 42   # Goal position register (2 bytes)
+        TORQUE_LIMIT_ADDR = 48    # Torque limit register (2 bytes, HLS only)
+        
+        results = {}
+        
+        for motor_id, position in position_dict.items():
+            try:
+                # Validate position range
+                if not (0 <= position <= 4095):
+                    print(f"Warning: Position {position} out of range for motor {motor_id}. Clamping to [0, 4095]")
+                    position = max(0, min(4095, position))
+                
+                # Read current mode
+                mode_data, comm_result, error = self.packet_handler.read1ByteTxRx(motor_id, MODE_ADDR)
+                
+                if comm_result != scs.COMM_SUCCESS:
+                    print(f"Failed to read mode for motor {motor_id}")
+                    results[motor_id] = False
+                    continue
+                    
+                # Switch to position mode if needed
+                if mode_data != 0:
+                    print(f"Motor {motor_id} is in mode {mode_data}, switching to position mode (0)...")
+                    if not self.set_operating_mode(motor_id, 0):
+                        print(f"Failed to switch motor {motor_id} to position mode")
+                        results[motor_id] = False
+                        continue
+                        
+                # Ensure torque is enabled
+                torque_enabled, comm_result, error = self.packet_handler.read1ByteTxRx(motor_id, TORQUE_ENABLE_ADDR)
+                if comm_result == scs.COMM_SUCCESS and torque_enabled != 1:
+                    comm_result, error = self.packet_handler.write1ByteTxRx(motor_id, TORQUE_ENABLE_ADDR, 1)
+                    if comm_result != scs.COMM_SUCCESS:
+                        print(f"Warning: Failed to enable torque for motor {motor_id}")
+                
+                # Set torque limit if provided (HLS only)
+                if torque_limit_dict and motor_id in torque_limit_dict:
+                    torque_limit_normalized = torque_limit_dict[motor_id]
+                    if not (0.0 <= torque_limit_normalized <= 1.0):
+                        print(f"Warning: Torque limit {torque_limit_normalized} out of range for motor {motor_id}. Clamping to [0.0, 1.0]")
+                        torque_limit_normalized = max(0.0, min(1.0, torque_limit_normalized))
+                    
+                    # Convert to 0-1000 range (0.1% units)
+                    torque_limit_value = int(torque_limit_normalized * 1000)
+                    
+                    comm_result, error = self.packet_handler.write2ByteTxRx(motor_id, TORQUE_LIMIT_ADDR, torque_limit_value)
+                    if comm_result != scs.COMM_SUCCESS:
+                        print(f"Warning: Failed to set torque limit for motor {motor_id}")
+                
+                # Write position value
+                comm_result, error = self.packet_handler.write2ByteTxRx(motor_id, GOAL_POSITION_ADDR, position)
+                
+                if comm_result != scs.COMM_SUCCESS:
+                    print(f"Failed to write position for motor {motor_id}: {self.packet_handler.getTxRxResult(comm_result)}")
+                    results[motor_id] = False
+                else:
+                    results[motor_id] = True
+                    
+            except Exception as e:
+                print(f"Error writing position for motor {motor_id}: {e}")
+                results[motor_id] = False
+                
+        return results
+    
     def disable_all_servos(self) -> None:
         """
         Disable torque on all configured servos.
