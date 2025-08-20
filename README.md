@@ -238,7 +238,30 @@ ServoController(servo_ids, servo_type="sts", port=None, baudrate=1000000)
 
 ### Utility Functions
 
-- `find_servo_port()`: Auto-detect servo serial port
+#### find_servo_port
+
+```python
+find_servo_port(return_all=False)
+```
+
+Auto-detect servo serial port(s) based on operating system.
+
+- `return_all` (bool): If True, return all available ports. If False, return only the first port (default: False)
+- Returns: Single port string (if return_all=False) or list of all ports (if return_all=True)
+- Raises: PortNotFoundError if no suitable ports are found
+
+Example:
+```python
+from vassar_feetech_servo_sdk import find_servo_port
+
+# Get first available port
+port = find_servo_port()
+print(f"Using port: {port}")
+
+# Get all available ports
+ports = find_servo_port(return_all=True)
+print(f"Available ports: {ports}")
+```
 
 ## Servo Types
 
@@ -251,7 +274,21 @@ ServoController(servo_ids, servo_type="sts", port=None, baudrate=1000000)
 
 ### Port Not Found
 
-If auto-detection fails, specify the port manually:
+If auto-detection fails, you can:
+
+1. **List available ports** to see what's detected:
+
+```python
+from vassar_feetech_servo_sdk import find_servo_port
+
+try:
+    ports = find_servo_port(return_all=True)
+    print(f"Available ports: {ports}")
+except Exception as e:
+    print(f"No ports found: {e}")
+```
+
+2. **Specify the port manually**:
 
 ```python
 # Linux
@@ -290,15 +327,14 @@ sudo chmod 666 /dev/ttyUSB0
 
 The package includes several example scripts in the `examples/` directory:
 
-- `basic_usage.py` - Simple example showing how to connect and read servo positions
 - `continuous_reading.py` - Real-time monitoring with custom callbacks
-- `servo_types.py` - Demonstrates differences between STS and HLS servos
 - `set_middle_position.py` - Shows how to calibrate servos to middle position
 - `position_control.py` - Comprehensive position control examples
 - `torque_control.py` - HLS torque control examples
 - `change_servo_id.py` - How to change servo IDs
 - `read_voltage.py` - Reading voltage from servos
 - `teleoperation.py` - Leader-follower arm control with voltage-based auto-detection
+- `list_ports.py` - Detect and list available servo ports
 
 ## Testing
 
