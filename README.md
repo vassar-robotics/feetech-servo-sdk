@@ -10,6 +10,7 @@ A comprehensive Python SDK for controlling Feetech servos (STS/HLS series).
 - 🔌 **Auto-detection** of serial ports
 - 🎯 **Support for STS and HLS servos** (HLS includes torque control)
 - 📖 **Read positions** from single or multiple servos  
+- ⚡ **Read voltage** from servos for monitoring power status
 - 🎯 **Set middle position** - Calibrate servos to position 2048
 - 💪 **Write torque targets** - HLS servos only with automatic mode switching
 - 🔧 **Set operating modes** - Configure servo behavior (position/speed/torque/PWM)
@@ -128,6 +129,29 @@ if controller.servo_type == "hls":
 controller.disconnect()
 ```
 
+### Voltage Reading
+
+```python
+from vassar_feetech_servo_sdk import ServoController
+
+# Connect to servos
+with ServoController([1, 2, 3, 4, 5, 6], "sts") as controller:
+    # Read voltage from single servo
+    voltage = controller.read_voltage(1)
+    print(f"Servo 1 voltage: {voltage:.1f}V")
+    
+    # Read voltages from all servos
+    voltages = controller.read_voltages()
+    for motor_id, v in sorted(voltages.items()):
+        print(f"Servo {motor_id}: {v:.1f}V")
+    
+    # Detect leader/follower arms based on voltage
+    if voltages[1] < 9.0:
+        print("Servo 1 is on the leader arm (< 9V)")
+    else:
+        print("Servo 1 is on the follower arm (> 9V)")
+```
+
 ### Torque Control (HLS Only)
 
 ```python
@@ -201,6 +225,8 @@ ServoController(servo_ids, servo_type="sts", port=None, baudrate=1000000)
 - `read_position(motor_id)`: Read single motor position
 - `read_positions(motor_ids=None)`: Read multiple motor positions
 - `read_all_positions()`: Read all configured servo positions
+- `read_voltage(motor_id)`: Read voltage from single servo (returns float in volts)
+- `read_voltages(motor_ids=None)`: Read voltages from multiple servos (returns dict of voltages)
 - `set_middle_position(motor_ids=None)`: Calibrate servos to middle position (2048)
 - `set_motor_id(current_id, new_id, confirm=True)`: Change a servo's ID (requires power cycle)
 - `set_operating_mode(motor_id, mode)`: Set servo operating mode (0-3)
@@ -268,6 +294,11 @@ The package includes several example scripts in the `examples/` directory:
 - `continuous_reading.py` - Real-time monitoring with custom callbacks
 - `servo_types.py` - Demonstrates differences between STS and HLS servos
 - `set_middle_position.py` - Shows how to calibrate servos to middle position
+- `position_control.py` - Comprehensive position control examples
+- `torque_control.py` - HLS torque control examples
+- `change_servo_id.py` - How to change servo IDs
+- `read_voltage.py` - Reading voltage from servos
+- `teleoperation.py` - Leader-follower arm control with voltage-based auto-detection
 
 ## Testing
 

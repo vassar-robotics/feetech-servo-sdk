@@ -60,6 +60,8 @@ class ServoController:
     
     PRESENT_POSITION_ADDR = 56  # Address for present position register
     POSITION_DATA_LENGTH = 2    # Bytes to read for position
+    PRESENT_VOLTAGE_ADDR = 62   # Address for present voltage register
+    VOLTAGE_DATA_LENGTH = 1     # Bytes to read for voltage
     
     def __init__(self, servo_ids: List[int], servo_type: str = "sts", 
                  port: Optional[str] = None, baudrate: int = 1000000):
@@ -226,6 +228,110 @@ class ServoController:
         groupSyncRead.clearParam()
         
         return positions
+    
+    def read_voltage(self, motor_id: int) -> float:
+        """
+        Read voltage from a single motor.
+        
+        Args:
+            motor_id: The ID of the motor to read from.
+            
+        Returns:
+            float: Voltage value in volts.
+            
+        Raises:
+            CommunicationError: If reading fails.
+        """
+        if not self._connected:
+            raise ConnectionError("Not connected. Call connect() first.")
+            
+        voltage_raw, comm_result, error = self.packet_handler.read1ByteTxRx(motor_id, self.PRESENT_VOLTAGE_ADDR)
+        
+        if comm_result != scs.COMM_SUCCESS:
+            raise CommunicationError(
+                f"Failed to read voltage from motor {motor_id}: "
+                f"{self.packet_handler.getTxRxResult(comm_result)}"
+            )
+            
+        if error != 0:
+            raise CommunicationError(
+                f"Motor {motor_id} error: {self.packet_handler.getRxPacketError(error)}"
+            )
+            
+        # Convert to volts (0.1V per unit)
+        return voltage_raw * 0.1
+        
+    def read_voltages(self, motor_ids: Optional[List[int]] = None) -> Dict[int, float]:
+        """
+        Read voltages from multiple motors using group sync read.
+        
+        Args:
+            motor_ids: List of motor IDs to read from. If None, uses self.servo_ids.
+        
+        Returns:
+            dict: Dictionary mapping motor IDs to voltage values in volts.
+        
+        Raises:
+            CommunicationError: If reading fails.
+        """
+        if not self._connected:
+            raise ConnectionError("Not connected. Call connect() first.")
+            
+        if motor_ids is None:
+            motor_ids = self.servo_ids
+            
+        voltages = {}
+        
+        # Create group sync read instance
+        groupSyncRead = scs.GroupSyncRead(
+            self.packet_handler, 
+            self.PRESENT_VOLTAGE_ADDR, 
+            self.VOLTAGE_DATA_LENGTH
+        )
+        
+        # Add all motor IDs to the group
+        for motor_id in motor_ids:
+            if not groupSyncRead.addParam(motor_id):
+                print(f"Warning: Failed to add motor {motor_id} to group read")
+                continue
+        
+        # Perform the group read
+        comm_result = groupSyncRead.txRxPacket()
+        if comm_result != scs.COMM_SUCCESS:
+            groupSyncRead.clearParam()
+            raise CommunicationError(
+                f"Group sync read failed: {self.packet_handler.getTxRxResult(comm_result)}"
+            )
+        
+        # Extract data for each motor
+        for motor_id in motor_ids:
+            # Check if data is available
+            data_result, error = groupSyncRead.isAvailable(
+                motor_id, 
+                self.PRESENT_VOLTAGE_ADDR, 
+                self.VOLTAGE_DATA_LENGTH
+            )
+            
+            if data_result:
+                # Get voltage value
+                voltage_raw = groupSyncRead.getData(
+                    motor_id, 
+                    self.PRESENT_VOLTAGE_ADDR, 
+                    self.VOLTAGE_DATA_LENGTH
+                )
+                # Convert to volts (0.1V per unit)
+                voltages[motor_id] = voltage_raw * 0.1
+            else:
+                print(f"Warning: Failed to get voltage data for motor {motor_id}")
+            
+            if error != 0:
+                print(f"Warning: Motor {motor_id} error: "
+                      f"{self.packet_handler.getRxPacketError(error)}")
+        
+        # Clear parameters for next read
+        groupSyncRead.clearParam()
+        
+        return voltages
     
     def set_middle_position(self, motor_ids: Optional[List[int]] = None) -> bool:
         """

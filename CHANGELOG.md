@@ -5,6 +5,18 @@ All notable changes to the vassar-feetech-servo-sdk project will be documented i
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2025-01-07
+
+### Added
+- New `read_voltage()` method to read voltage from a single servo
+- New `read_voltages()` method to read voltages from multiple servos using group sync read
+- Voltage reading example script `read_voltage.py`
+- Teleoperation example script `teleoperation.py` with voltage-based leader/follower detection
+- Documentation for voltage reading features in README
+
+### Changed
+- Teleoperation script now uses voltage-based auto-detection (leader < 9V, follower > 9V)
+
 ## [1.2.0] - 2025-08-06
 
 ### Added
