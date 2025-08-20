@@ -5,6 +5,21 @@ All notable changes to the vassar-feetech-servo-sdk project will be documented i
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2025-01-07
+
+### Added
+- New `return_all` parameter to `find_servo_port()` function for getting all available ports
+- New `list_ports.py` example script showing port detection usage
+
+### Changed
+- `find_servo_port()` can now optionally return all available ports when `return_all=True`
+- Teleoperation script now uses the centralized port detection from the SDK
+- Teleoperation script restructured with proper `main()` function pattern
+
+### Improved
+- Better error handling in teleoperation script when insufficient ports are found
+- Port detection code is now shared across the SDK instead of duplicated
+
 ## [1.3.0] - 2025-01-07
 
 ### Added
