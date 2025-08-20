@@ -127,19 +127,19 @@ class ServoController:
             
         self._connected = True
         
-        # Check and set phase to 8 for all servos
+        # Check and set phase to 0 for all servos
         print("Checking servo phase values...")
         for motor_id in self.servo_ids:
             try:
                 current_phase = self.read_phase(motor_id)
-                if current_phase != 8:
-                    print(f"Motor {motor_id}: Phase is {current_phase}, setting to 8...")
-                    if self.set_phase(motor_id, 8):
-                        print(f"Motor {motor_id}: Phase set to 8 ✓")
+                if current_phase != 0:
+                    print(f"Motor {motor_id}: Phase is {current_phase}, setting to 0...")
+                    if self.set_phase(motor_id, 0):
+                        print(f"Motor {motor_id}: Phase set to 0 ✓")
                     else:
-                        print(f"Motor {motor_id}: Failed to set phase to 8")
+                        print(f"Motor {motor_id}: Failed to set phase to 0")
                 else:
-                    print(f"Motor {motor_id}: Phase already 8 ✓")
+                    print(f"Motor {motor_id}: Phase already 0 ✓")
             except Exception as e:
                 print(f"Motor {motor_id}: Error checking/setting phase - {e}")
         
@@ -830,7 +830,7 @@ class ServoController:
     
     def write_position(self, position_dict: Dict[int, int], 
                       torque_limit_dict: Optional[Dict[int, float]] = None,
-                      speed: int = 0,
+                      speed: int = 32767,
                       acceleration: int = 0) -> Dict[int, bool]:
         """
         Write position values to servos using efficient SyncWritePosEx method.
@@ -847,8 +847,9 @@ class ServoController:
                               Only supported for HLS servos.
                               Example: {1: 0.5, 2: 0.8}
                               
-            speed: Goal speed for all servos (0-1023, 0.732RPM/unit). 
-                   0 = maximum speed; higher values = slower. Default: 0 (max speed).
+            speed: Goal speed for all servos (-32767 to 32767, 0.732RPM/unit). 
+                   BIT15 is direction bit. 0 = default max speed, 32767 = max forward speed.
+                   Default: 32767 (max forward speed).
                    
             acceleration: Acceleration for all servos (0-254, 8.7°/s²/unit).
                          0 = maximum acceleration (default).

@@ -12,15 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `list_ports.py` example script showing port detection usage
 - New `read_phase()` method to read servo phase values
 - New `set_phase()` method to set servo phase values
-- Automatic phase initialization: all servos are set to phase 8 during `connect()`
+- Automatic phase initialization: all servos are set to phase 0 during `connect()`
 - New `phase_control.py` example script demonstrating phase reading and setting
 
 ### Changed
-- **BREAKING**: Default speed parameter in `write_position()` changed from 100 to 0 (maximum speed)
-  - Speed parameter: 0 = maximum speed, higher values = slower movement
-- **BREAKING**: `connect()` now automatically sets all servos to phase 8
+- **BREAKING**: Default speed parameter in `write_position()` changed to 32767 (maximum forward speed)
+  - Speed range is -32767 to 32767 (0.732RPM/unit), BIT15 is direction bit
+  - Previous default was 0 (which uses servo's default max speed)
+- **BREAKING**: `connect()` now automatically sets all servos to phase 0
   - This ensures consistent servo behavior across all connected servos
-  - Phase value 8 sets BIT3 (Speed feedback phase: reverse)
+  - Phase value 0 means all phase bits are normal (not reversed)
 - `find_servo_port()` can now optionally return all available ports when `return_all=True`
 - Teleoperation script now uses the centralized port detection from the SDK
 - Teleoperation script restructured with proper `main()` function pattern

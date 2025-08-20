@@ -9,7 +9,7 @@ def main():
     servo_ids = [1, 2, 3]
     servo_type = "sts"  # or "hls"
     
-    # Create controller - phase will be automatically set to 8 during connect()
+    # Create controller - phase will be automatically set to 0 during connect()
     controller = ServoController(servo_ids, servo_type)
     
     with controller:
@@ -39,7 +39,7 @@ def main():
         if controller.set_phase(2, 128):
             print(f"Motor 2: Phase set to 128 (position feedback reverse)")
         
-        # The servos will be automatically set back to phase 8 
+        # The servos will be automatically set back to phase 0 
         # the next time ServoController connects to them
 
 
