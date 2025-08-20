@@ -14,12 +14,16 @@ import scservo_sdk as scs
 from .exceptions import PortNotFoundError, ConnectionError, CommunicationError
 
 
-def find_servo_port() -> str:
+def find_servo_port(return_all: bool = False) -> Union[str, List[str]]:
     """
-    Find robot serial port automatically.
+    Find robot serial port(s) automatically.
+    
+    Args:
+        return_all: If True, return all available ports. If False, return only the first port.
     
     Returns:
-        str: The first suitable serial port found.
+        str or List[str]: First suitable port found (if return_all=False) or 
+                         list of all suitable ports (if return_all=True).
         
     Raises:
         PortNotFoundError: If no suitable port is found.
@@ -38,6 +42,8 @@ def find_servo_port() -> str:
     if not ports:
         raise PortNotFoundError("No suitable serial port found for servo communication")
     
+    if return_all:
+        return sorted(ports)
     return ports[0]  # Return first port found
 
 

@@ -5,28 +5,8 @@ Leader arm: voltage < 9V
 Follower arm: voltage > 9V
 """
 
-import platform
 import time
-from typing import List
-from serial.tools import list_ports
-from vassar_feetech_servo_sdk import ServoController
-
-
-def find_servo_ports() -> List[str]:
-    """Find available servo ports based on operating system."""
-    ports = []
-    
-    system = platform.system()
-    if system == "Darwin":  # macOS
-        ports = [p.device for p in list_ports.comports() 
-                if "usbmodem" in p.device or "usbserial" in p.device]
-    elif system == "Linux":
-        ports = [p.device for p in list_ports.comports() 
-                if "ttyUSB" in p.device or "ttyACM" in p.device]
-    else:  # Windows
-        ports = [p.device for p in list_ports.comports() if "COM" in p.device]
-    
-    return sorted(ports)
+from vassar_feetech_servo_sdk import ServoController, find_servo_port
 
 
 def main():
@@ -37,11 +17,15 @@ def main():
     FREQUENCY = 20  # Hz
     
     # Auto-detect ports
-    ports = find_servo_ports()
-    if len(ports) < 2:
-        print(f"Error: Need 2 servo ports but found {len(ports)}")
-        if ports:
-            print(f"Available ports: {', '.join(ports)}")
+    try:
+        ports = find_servo_port(return_all=True)
+        if len(ports) < 2:
+            print(f"Error: Need 2 servo ports but found {len(ports)}")
+            if ports:
+                print(f"Available ports: {', '.join(ports)}")
+            return
+    except Exception as e:
+        print(f"Error finding servo ports: {e}")
         return
     
     print(f"Found ports: {ports[0]}, {ports[1]}")
