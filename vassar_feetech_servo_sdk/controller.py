@@ -68,6 +68,8 @@ class ServoController:
     POSITION_DATA_LENGTH = 2    # Bytes to read for position
     PRESENT_VOLTAGE_ADDR = 62   # Address for present voltage register
     VOLTAGE_DATA_LENGTH = 1     # Bytes to read for voltage
+    PHASE_ADDR = 18            # Address for phase register
+    PHASE_DATA_LENGTH = 1      # Bytes to read for phase
     
     def __init__(self, servo_ids: List[int], servo_type: str = "sts", 
                  port: Optional[str] = None, baudrate: int = 1000000):
@@ -124,6 +126,22 @@ class ServoController:
             raise ConnectionError(f"Failed to set baudrate to {self.baudrate}")
             
         self._connected = True
+        
+        # Check and set phase to 8 for all servos
+        print("Checking servo phase values...")
+        for motor_id in self.servo_ids:
+            try:
+                current_phase = self.read_phase(motor_id)
+                if current_phase != 8:
+                    print(f"Motor {motor_id}: Phase is {current_phase}, setting to 8...")
+                    if self.set_phase(motor_id, 8):
+                        print(f"Motor {motor_id}: Phase set to 8 ✓")
+                    else:
+                        print(f"Motor {motor_id}: Failed to set phase to 8")
+                else:
+                    print(f"Motor {motor_id}: Phase already 8 ✓")
+            except Exception as e:
+                print(f"Motor {motor_id}: Error checking/setting phase - {e}")
         
     def disconnect(self) -> None:
         """Disconnect from the servos."""
@@ -338,6 +356,99 @@ class ServoController:
         groupSyncRead.clearParam()
         
         return voltages
+    
+    def read_phase(self, motor_id: int) -> int:
+        """
+        Read phase value from a single motor.
+        
+        Args:
+            motor_id: The ID of the motor to read from.
+            
+        Returns:
+            int: Phase value (0-254).
+            
+        Raises:
+            CommunicationError: If reading fails.
+        """
+        if not self._connected:
+            raise ConnectionError("Not connected. Call connect() first.")
+            
+        phase_value, comm_result, error = self.packet_handler.read1ByteTxRx(motor_id, self.PHASE_ADDR)
+        
+        if comm_result != scs.COMM_SUCCESS:
+            raise CommunicationError(
+                f"Failed to read phase from motor {motor_id}: "
+                f"{self.packet_handler.getTxRxResult(comm_result)}"
+            )
+            
+        if error != 0:
+            raise CommunicationError(
+                f"Motor {motor_id} error: {self.packet_handler.getRxPacketError(error)}"
+            )
+            
+        return phase_value
+    
+    def set_phase(self, motor_id: int, phase_value: int) -> bool:
+        """
+        Set phase value for a single motor.
+        
+        Args:
+            motor_id: The ID of the motor to configure.
+            phase_value: Phase value to set (0-254).
+            
+        Returns:
+            bool: True if phase was successfully set.
+            
+        Raises:
+            ConnectionError: If not connected.
+            ValueError: If phase value is out of range.
+        """
+        if not self._connected:
+            raise ConnectionError("Not connected. Call connect() first.")
+            
+        if not (0 <= phase_value <= 254):
+            raise ValueError(f"Phase value {phase_value} out of range (0-254)")
+            
+        # Memory addresses
+        LOCK_ADDR = 55    # Lock flag address
+        
+        try:
+            # Unlock EEPROM
+            if self.servo_type == "sts":
+                comm_result, error = self.packet_handler.unLockEprom(motor_id)
+            else:  # hls
+                comm_result, error = self.packet_handler.unLockEprom(motor_id)
+                
+            if comm_result != scs.COMM_SUCCESS:
+                print(f"Warning: Failed to unlock EEPROM for motor {motor_id}")
+                return False
+                
+            # Write phase value
+            comm_result, error = self.packet_handler.write1ByteTxRx(motor_id, self.PHASE_ADDR, phase_value)
+            
+            if comm_result != scs.COMM_SUCCESS:
+                self._lock_eeprom_safe(motor_id)
+                print(f"Failed to set phase for motor {motor_id}: {self.packet_handler.getTxRxResult(comm_result)}")
+                return False
+                
+            # Lock EEPROM
+            if self.servo_type == "sts":
+                comm_result, error = self.packet_handler.LockEprom(motor_id)
+            else:  # hls
+                comm_result, error = self.packet_handler.LockEprom(motor_id)
+                
+            if comm_result != scs.COMM_SUCCESS:
+                print(f"Warning: Failed to lock EEPROM for motor {motor_id}")
+                
+            # Give servo time to process
+            time.sleep(0.05)
+            
+            return True
+            
+        except Exception as e:
+            self._lock_eeprom_safe(motor_id)
+            print(f"Error setting phase for motor {motor_id}: {e}")
+            return False
     
     def set_middle_position(self, motor_ids: Optional[List[int]] = None) -> bool:
         """
