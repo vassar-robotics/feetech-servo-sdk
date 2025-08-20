@@ -848,7 +848,7 @@ class ServoController:
                               Example: {1: 0.5, 2: 0.8}
                               
             speed: Goal speed for all servos (-32767 to 32767, 0.732RPM/unit). 
-                   BIT15 is direction bit. 0 = default max speed, 32767 = max forward speed.
+                   BIT15 is direction bit. 32767 = max forward speed.
                    Default: 32767 (max forward speed).
                    
             acceleration: Acceleration for all servos (0-254, 8.7°/s²/unit).

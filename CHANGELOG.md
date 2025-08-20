@@ -18,7 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **BREAKING**: Default speed parameter in `write_position()` changed to 32767 (maximum forward speed)
   - Speed range is -32767 to 32767 (0.732RPM/unit), BIT15 is direction bit
-  - Previous default was 0 (which uses servo's default max speed)
 - **BREAKING**: `connect()` now automatically sets all servos to phase 0
   - This ensures consistent servo behavior across all connected servos
   - Phase value 0 means all phase bits are normal (not reversed)
