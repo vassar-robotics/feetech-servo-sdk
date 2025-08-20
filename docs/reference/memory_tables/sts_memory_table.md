@@ -57,7 +57,7 @@ STS/SMS servos use the FT-SCS custom protocol. Default serial configuration: 8 d
 | 41 (0x29) | Acceleration | RW | 1 | 0 | 0-254 | Acceleration (8.7°/s²/unit). 0=max acceleration |
 | 42 (0x2A) | Goal Position | RW | 2 | 0 | -32767 to 32767 | Target position (0.087°/unit). BIT15=direction |
 | 44 (0x2C) | PWM Speed | RW | 2 | 1000 | 0-1000 | Speed in PWM mode (0.1%). BIT10=direction |
-| 46 (0x2E) | Goal Speed | RW | 2 | Factory max | -32767 to 32767 | Max speed. Unit set by Phase. 0=max/stop. BIT15=direction |
+| 46 (0x2E) | Goal Speed | RW | 2 | Factory max | -32767 to 32767 | The motor’s maximum operating speed is controlled with BIT15 serving as the direction bit. A speed value of 0 defaults to the maximum speed, though it can also represent stop depending on the phase setting. The speed unit can be configured through the phase setting to either 0.732 RPM or 0.0146 RPM, but even when set to 0.0146 RPM, the effective precision remains 0.732 RPM. |
 | 48 (0x30) | Torque Limit | RW | 2 | From addr 16 | 0-1000 | Stall torque limit (0.1%) |
 | 55 (0x37) | Lock Flag | RW | 1 | 1 | 0-1 | 0=save EEPROM changes, 1=don't save |
 

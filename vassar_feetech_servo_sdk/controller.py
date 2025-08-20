@@ -719,7 +719,7 @@ class ServoController:
     
     def write_position(self, position_dict: Dict[int, int], 
                       torque_limit_dict: Optional[Dict[int, float]] = None,
-                      speed: int = 100,
+                      speed: int = 0,
                       acceleration: int = 0) -> Dict[int, bool]:
         """
         Write position values to servos using efficient SyncWritePosEx method.
@@ -736,8 +736,8 @@ class ServoController:
                               Only supported for HLS servos.
                               Example: {1: 0.5, 2: 0.8}
                               
-            speed: Goal speed for all servos (0-100, 0.732RPM/unit). 
-                   0 = no movement; 100 = max speed. Default: 100 (~73.2 RPM).
+            speed: Goal speed for all servos (0-1023, 0.732RPM/unit). 
+                   0 = maximum speed; higher values = slower. Default: 0 (max speed).
                    
             acceleration: Acceleration for all servos (0-254, 8.7°/s²/unit).
                          0 = maximum acceleration (default).

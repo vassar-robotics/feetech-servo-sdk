@@ -108,7 +108,7 @@ positions = {
     3: 3072    # ~270°
 }
 
-results = controller.write_position(positions)  # Uses default speed=100
+results = controller.write_position(positions)  # Uses default speed=0 (max speed)
 print(f"Position write results: {results}")
 
 # Position control with speed and acceleration
@@ -230,7 +230,7 @@ ServoController(servo_ids, servo_type="sts", port=None, baudrate=1000000)
 - `set_middle_position(motor_ids=None)`: Calibrate servos to middle position (2048)
 - `set_motor_id(current_id, new_id, confirm=True)`: Change a servo's ID (requires power cycle)
 - `set_operating_mode(motor_id, mode)`: Set servo operating mode (0-3)
-- `write_position(position_dict, torque_limit_dict=None, speed=100, acceleration=0)`: Write position values to servos (auto-switches to position mode)
+- `write_position(position_dict, torque_limit_dict=None, speed=0, acceleration=0)`: Write position values to servos (auto-switches to position mode)
 - `write_torque(torque_dict)`: Write torque values to HLS servos (auto-switches to torque mode)
 - `disable_all_servos()`: Disable torque on all servos (called automatically on cleanup)
 
