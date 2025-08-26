@@ -5,6 +5,21 @@ All notable changes to the vassar-feetech-servo-sdk project will be documented i
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2025-01-07
+
+### Added
+- New `read_phase()` method to read servo phase values
+- New `set_phase()` method to set servo phase values with EEPROM handling
+- Automatic phase initialization: all servos are set to phase 0 during `connect()`
+- New `phase_control.py` example script demonstrating phase reading and setting
+
+### Changed
+- **BREAKING**: Default speed parameter in `write_position()` changed to 32767 (maximum forward speed)
+  - Speed range is -32767 to 32767 (0.732RPM/unit), BIT15 is direction bit
+- **BREAKING**: `connect()` now automatically sets all servos to phase 0
+  - This ensures consistent servo behavior across all connected servos
+  - Phase value 0 means all phase bits are normal (not reversed)
+
 ## [1.4.0] - 2025-01-07
 
 ### Added
@@ -15,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `find_servo_port()` can now optionally return all available ports when `return_all=True`
 - Teleoperation script now uses the centralized port detection from the SDK
 - Teleoperation script restructured with proper `main()` function pattern
+- Updated README with comprehensive port detection documentation
 
 ### Improved
 - Better error handling in teleoperation script when insufficient ports are found
@@ -44,8 +60,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - `write_torque()` now uses proper torque scaling (0-2047) with 0.95 safety factor
-- Default speed parameter in `write_position()` set to 100 for safe operation
-- Speed parameter documentation corrected (0 = no movement, not max speed)
+- Default speed parameter in `write_position()` was 100
+- Speed parameter range documentation corrected
 
 ### Fixed
 - Speed parameter range documentation corrected to 0-100 units

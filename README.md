@@ -108,7 +108,7 @@ positions = {
     3: 3072    # ~270°
 }
 
-results = controller.write_position(positions)  # Uses default speed=100
+results = controller.write_position(positions)  # Uses default speed=32767 (max forward speed)
 print(f"Position write results: {results}")
 
 # Position control with speed and acceleration
@@ -220,17 +220,19 @@ ServoController(servo_ids, servo_type="sts", port=None, baudrate=1000000)
 
 #### Methods
 
-- `connect()`: Establish connection to servos
+- `connect()`: Establish connection to servos (automatically sets phase to 0 for all servos)
 - `disconnect()`: Close connection
 - `read_position(motor_id)`: Read single motor position
 - `read_positions(motor_ids=None)`: Read multiple motor positions
 - `read_all_positions()`: Read all configured servo positions
 - `read_voltage(motor_id)`: Read voltage from single servo (returns float in volts)
 - `read_voltages(motor_ids=None)`: Read voltages from multiple servos (returns dict of voltages)
+- `read_phase(motor_id)`: Read phase value from servo (returns int 0-254)
+- `set_phase(motor_id, phase_value)`: Set phase value for servo (phase value: 0-254)
 - `set_middle_position(motor_ids=None)`: Calibrate servos to middle position (2048)
 - `set_motor_id(current_id, new_id, confirm=True)`: Change a servo's ID (requires power cycle)
 - `set_operating_mode(motor_id, mode)`: Set servo operating mode (0-3)
-- `write_position(position_dict, torque_limit_dict=None, speed=100, acceleration=0)`: Write position values to servos (auto-switches to position mode)
+- `write_position(position_dict, torque_limit_dict=None, speed=32767, acceleration=0)`: Write position values to servos (auto-switches to position mode)
 - `write_torque(torque_dict)`: Write torque values to HLS servos (auto-switches to torque mode)
 - `disable_all_servos()`: Disable torque on all servos (called automatically on cleanup)
 
@@ -333,6 +335,7 @@ The package includes several example scripts in the `examples/` directory:
 - `torque_control.py` - HLS torque control examples
 - `change_servo_id.py` - How to change servo IDs
 - `read_voltage.py` - Reading voltage from servos
+- `phase_control.py` - Reading and setting servo phase values
 - `teleoperation.py` - Leader-follower arm control with voltage-based auto-detection
 - `list_ports.py` - Detect and list available servo ports
 
