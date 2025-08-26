@@ -1,0 +1,6 @@
+ - plug in a single robotic arm
+  - run "python examples/set_middle_position_sts6dof.py"
+  follow onscreen instructions, if it errors, could be a Feetech Debugger issue.
+
+  - plug in the pair of calibrated arms
+   - run "python examples/teleoperation_sts6dof.py"

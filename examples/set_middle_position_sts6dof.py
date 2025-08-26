@@ -9,7 +9,7 @@ import platform
 def main():
     # Define your servo configuration
     servo_ids = [1, 2, 3, 4, 5, 6, 7]
-    servo_type = "hls" # sts"  # or "hls" for HLS servos
+    servo_type = "sts" # sts"  # or "hls" for HLS servos
     
     try:
         # Auto-detect the servo port

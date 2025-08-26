@@ -11,9 +11,8 @@ from vassar_feetech_servo_sdk import ServoController, find_servo_port
 
 def main():
     # Configuration
-    SERVO_IDS = [1, 2, 3, 4, 5, 6, 7]
-    LEADER_SERVO_TYPE = "hls"  # or "hls"
-    FOLLOWER_SERVO_TYPE = "sts"  # or "hls"
+    SERVO_IDS = [1, 2, 3, 4, 5, 6]
+    SERVO_TYPE = "sts"  # or "hls"
     VOLTAGE_THRESHOLD = 9.0  # Volts
     FREQUENCY = 200  # Hz
     
@@ -32,8 +31,8 @@ def main():
     print(f"Found ports: {ports[0]}, {ports[1]}")
     
     # Create controllers
-    ctrl1 = ServoController(SERVO_IDS, LEADER_SERVO_TYPE, ports[0])
-    ctrl2 = ServoController(SERVO_IDS, FOLLOWER_SERVO_TYPE, ports[1])
+    ctrl1 = ServoController(SERVO_IDS, SERVO_TYPE, ports[0])
+    ctrl2 = ServoController(SERVO_IDS, SERVO_TYPE, ports[1])
     
     with ctrl1, ctrl2:
         # Read voltage from first servo on first port
